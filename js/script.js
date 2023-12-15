@@ -16,6 +16,7 @@ var imageSpriteSet = null;
 var countLoad = 0;
 var numSprite = 0;
 var scale = 1.5;
+var numBackStep = 22;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -23,13 +24,44 @@ var dataImg={
     spHeight:0,
 }
 var buttonNo = {
-    x:100,
-    y:500,
+    x:800/2-100-20,//*2,
+    y:430,
     width: 100,
     height: 50,
     str:'<= Нет',
     fontSize:25,
     colorText:'red',
+    color:'black',
+} 
+var buttonYes = {
+    x:800/2+20,//+100,
+    y:430,
+    width: 100,
+    height: 50,
+    str:'ДА =>',
+    fontSize:25,
+    colorText:'green',
+    color:'black',
+} 
+var distMinusPlus = 30;
+var buttonPlus= {
+    x:800/2+distMinusPlus,//*2,
+    y:530,
+    width: 50,
+    height: 50,
+    str:'+',
+    fontSize:25,
+    colorText:'white',
+    color:'black',
+} 
+var buttonMinus = {
+    x:800/2-50-distMinusPlus,//*2,
+    y:530,
+    width: 50,
+    height: 50,
+    str:'-',
+    fontSize:25,
+    colorText:'white',
     color:'black',
 } 
 var dataImgArr = [];
@@ -118,11 +150,26 @@ function drawAll()
 {
     context.fillStyle = "rgb(210,210,210)"
     context.fillRect(0, 0, screenWidth, screenHeight);
-    drawTextCenterScreen('Появлялась ли эта картинка 2 позиции назад?',50,25,'green')
-    context.drawImage(imageSpriteSet, dataImgArr[numSprite].xSp, dataImgArr[numSprite].ySp, 
+    drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+' позиции назад?',50,25,'green')
+    //scale = 0.70;
+   // for (let i = 0; i < 16; i++)
+   // {
+        //numSprite = i;
+        context.drawImage(imageSpriteSet, dataImgArr[numSprite].xSp, dataImgArr[numSprite].ySp, 
                         dataImgArr[numSprite].spWidth, dataImgArr[numSprite].spHeight,
                       250, 100, dataImgArr[numSprite].spWidth *scale, dataImgArr[numSprite].spHeight*scale);
+        //context.drawImage(imageSpriteSet, dataImgArr[numSprite].xSp, dataImgArr[numSprite].ySp, 
+        //                dataImgArr[numSprite].spWidth, dataImgArr[numSprite].spHeight,
+        //              (i%4)*145+10, Math.floor(i/4)*145+10, dataImgArr[numSprite].spWidth *scale, dataImgArr[numSprite].spHeight*scale);
+  //  }
+
     drawButton(buttonNo);
+    drawButton(buttonYes);
+    drawTextCenterScreen('Число позиций назад:',600-87,25,'green')
+    drawButton(buttonPlus);
+    drawButton(buttonMinus);
+    drawTextCenterScreen(numBackStep,600-35,25,'green')
+    //
 }
 function drawTextCenterScreen(str,y,fontSize,color)
 {
@@ -156,7 +203,7 @@ function gameLoop()
 {
     timeNow = new Date().getTime();
     time += timeNow - timeOld;
-    if (time>1000)
+    if (time>100)
     {
         numSprite++;
         numSprite %= 16;
