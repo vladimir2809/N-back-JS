@@ -16,7 +16,7 @@ var imageSpriteSet = null;
 var countLoad = 0;
 var numSprite = 0;
 var scale = 1.5;
-var numBackStep = 22;
+var numBackStep = 2;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -144,13 +144,13 @@ function create()
     context = canvas.getContext("2d");
     updateSize();
     initKeyboardAndMouse([]);
-    initImgFromSpriteset();
+    initImgFromSpriteSet();
 }
 function drawAll()
 {
     context.fillStyle = "rgb(210,210,210)"
     context.fillRect(0, 0, screenWidth, screenHeight);
-    drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+' позиции назад?',50,25,'green')
+    drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+" "+strPosition(numBackStep)+' назад?',50,25,'green')
     //scale = 0.70;
    // for (let i = 0; i < 16; i++)
    // {
@@ -210,11 +210,27 @@ function gameLoop()
         time = 0;
     }
     timeOld = new Date().getTime();
-    
+    if (mouseLeftClick())
+    {
+        //alert('click');
+        if (checkInObj(buttonPlus,mouseX,mouseY))
+        {
+            if (numBackStep<10)numBackStep++;
+        }
+        if (checkInObj(buttonMinus,mouseX,mouseY))
+        {
+            if (numBackStep>1)numBackStep--;
+        }
+    }
 }
-function initImgFromSpriteset()
+function strPosition(value)
 {
-    let line = 0;
+    if (value == 1) return 'позицию';
+    if (value > 1 && value < 5) return 'позиции';
+    if (value >=5) return 'позиций';
+}
+function initImgFromSpriteSet()
+{
     let widthSprite = 200;
     for (let i = 0; i < 16;i++)
     {
