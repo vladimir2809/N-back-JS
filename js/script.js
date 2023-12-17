@@ -17,6 +17,10 @@ var countLoad = 0;
 var numSprite = 0;
 var scale = 1.5;
 var numBackStep = 2;
+var dataArr = [];
+var correct = 0;
+var wrong = 0;
+var drawResult = null;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -143,7 +147,9 @@ function create()
     canvas = document.getElementById("canvas");  
     context = canvas.getContext("2d");
     updateSize();
-    initKeyboardAndMouse([]);
+    time = new Date().getTime();
+    srand(time);
+    initKeyboardAndMouse(['ArrowLeft','ArrowRight']);
     initImgFromSpriteSet();
 }
 function drawAll()
@@ -162,13 +168,22 @@ function drawAll()
         //                dataImgArr[numSprite].spWidth, dataImgArr[numSprite].spHeight,
         //              (i%4)*145+10, Math.floor(i/4)*145+10, dataImgArr[numSprite].spWidth *scale, dataImgArr[numSprite].spHeight*scale);
   //  }
-
+    context.font = 25 + 'px Arial';
+    context.fillStyle = 'red';
+    let str = 'Не верно ' + wrong;
+    widthText=context.measureText(str).width;
+    context.fillText(str, 120-widthText/2, 120);
+    context.fillStyle = 'green';
+    
+    context.fillText('Верно '+correct, 620, 120);
     drawButton(buttonNo);
     drawButton(buttonYes);
     drawTextCenterScreen('Число позиций назад:',600-87,25,'green')
     drawButton(buttonPlus);
     drawButton(buttonMinus);
-    drawTextCenterScreen(numBackStep,600-35,25,'green')
+    drawTextCenterScreen(numBackStep, 600 - 35, 25, 'green');
+    if (drawResult=='wrong')drawCross(90, 220);
+    if (drawResult =='correct')drawOk(640,220)
     //
 }
 function drawTextCenterScreen(str,y,fontSize,color)
@@ -189,6 +204,44 @@ function drawButton(obj)
     let x = obj.width/2 - widthText / 2;
     context.fillText(obj.str, obj.x+x, obj.y+obj.fontSize*1.3);
 }
+function drawCross(x,y)
+{
+    width = 70;
+    context.save();
+    context.strokeStyle = 'red';
+    context.lineWidth = 5;
+
+    context.beginPath();
+    context.moveTo(x,y);
+    context.lineTo(x+width,y+width);
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(x,y+width);
+    context.lineTo(x+width,y);
+    context.stroke();
+
+    context.restore();
+}
+function drawOk(x,y)
+{
+    width = 70;
+    context.save();
+    context.strokeStyle = 'green';
+    context.lineWidth = 5;
+
+    context.beginPath();
+    context.moveTo(x,y+width/2);
+    context.lineTo(x,y+width);
+    context.stroke();
+
+    context.beginPath();
+    context.moveTo(x,y+width);
+    context.lineTo(x+width,y);
+    context.stroke();
+
+    context.restore();
+}
 //var buttonNo = {
 //    x:100,
 //    y:500,
@@ -203,14 +256,26 @@ function gameLoop()
 {
     timeNow = new Date().getTime();
     time += timeNow - timeOld;
-    if (time>100)
-    {
-        numSprite++;
-        numSprite %= 16;
-        time = 0;
-    }
+    //wrong++;
+    //if (time>100)
+    //{
+    //    numSprite++;
+    //    numSprite %= 16;
+    //    time = 0;
+    //}
     timeOld = new Date().getTime();
-    if (mouseLeftClick())
+    if (drawResult!=null)
+    {
+        if (time>500)
+        {
+            drawResult = null;
+            time = 0;
+
+        }
+    }
+    let mouseClick = mouseLeftClick();
+    let len = dataArr.length;
+    if (mouseClick==true)
     {
         //alert('click');
         if (checkInObj(buttonPlus,mouseX,mouseY))
@@ -221,7 +286,88 @@ function gameLoop()
         {
             if (numBackStep>1)numBackStep--;
         }
+    }  
+    if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200))
+    {
+            
+        if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
+        {
+            drawResult = 'correct';
+            correct++;
+        }
+        else
+        {
+            drawResult = 'wrong';
+            wrong++;
+        }
+        updateData()
     }
+    
+    if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200))
+    {
+            
+        if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
+        {
+            drawResult = 'wrong';
+            wrong++;
+        }
+        else
+        {
+            drawResult = 'correct';
+            correct++;
+        }
+        updateData();
+    }
+    //if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) ||
+    //    ( checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) ||
+    //    keyUpDuration('ArrowLeft',200)||
+    //    keyUpDuration('ArrowRight',200)
+
+    //    )
+
+    //{
+    //    dataArr.push(numSprite);
+    //    let rand = randomInteger(0, 100);
+    //    if (len<=numBackStep)
+    //    {
+    //        numSprite = randomInteger(0, 8);
+    //    }
+    //    else
+    //    {
+    //        if(rand>50)
+    //        {
+    //            numSprite= dataArr[len+1-numBackStep];
+    //        }
+    //        else
+    //        {
+    //            numSprite = randomInteger(0, 8);
+    //        }
+    //    }
+    //    time = 0;
+    //}
+    
+}
+function updateData()
+{
+    dataArr.push(numSprite);
+    let len = dataArr.length;
+    let rand = randomInteger(0, 100);
+    if (len<=numBackStep)
+    {
+        numSprite = randomInteger(0, 8);
+    }
+    else
+    {
+        if(rand>50)
+        {
+            numSprite= dataArr[len-numBackStep];
+        }
+        else
+        {
+            numSprite = randomInteger(0, 8);
+        }
+    }
+    time = 0;
 }
 function strPosition(value)
 {
