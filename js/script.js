@@ -21,6 +21,7 @@ var dataArr = [];
 var correct = 0;
 var wrong = 0;
 var drawResult = null;
+var drawImage = true;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -159,7 +160,8 @@ function drawAll()
     drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+" "+strPosition(numBackStep)+' назад?',50,25,'green')
     //scale = 0.70;
    // for (let i = 0; i < 16; i++)
-   // {
+    if (drawImage==true)
+    {
         //numSprite = i;
         context.drawImage(imageSpriteSet, dataImgArr[numSprite].xSp, dataImgArr[numSprite].ySp, 
                         dataImgArr[numSprite].spWidth, dataImgArr[numSprite].spHeight,
@@ -167,12 +169,18 @@ function drawAll()
         //context.drawImage(imageSpriteSet, dataImgArr[numSprite].xSp, dataImgArr[numSprite].ySp, 
         //                dataImgArr[numSprite].spWidth, dataImgArr[numSprite].spHeight,
         //              (i%4)*145+10, Math.floor(i/4)*145+10, dataImgArr[numSprite].spWidth *scale, dataImgArr[numSprite].spHeight*scale);
-  //  }
+    }
+    else
+    {
+        //context.fillStyle = 'black';
+       // context.fillRect(250,100,dataImgArr[numSprite].spWidth *scale, dataImgArr[numSprite].spHeight*scale)
+    }
     context.font = 25 + 'px Arial';
     context.fillStyle = 'red';
     let str = 'Не верно ' + wrong;
     widthText=context.measureText(str).width;
     context.fillText(str, 120-widthText/2, 120);
+   // context.fillText('mouseX '+Math.floor(mouseX)+' mouseY '+Math.floor(mouseY),10,30);
     context.fillStyle = 'green';
     
     context.fillText('Верно '+correct, 620, 120);
@@ -266,13 +274,22 @@ function gameLoop()
     timeOld = new Date().getTime();
     if (drawResult!=null)
     {
+        if (drawImage==false && time>100)
+        {
+            drawImage = true;
+        }
         if (time>500)
         {
             drawResult = null;
+            //drawImage = false;
             time = 0;
 
         }
     }
+    //if (drawImage==false && time>100)
+    //{
+    //    drawImage = true;
+    //}
     let mouseClick = mouseLeftClick();
     let len = dataArr.length;
     if (mouseClick==true)
@@ -287,36 +304,41 @@ function gameLoop()
             if (numBackStep>1)numBackStep--;
         }
     }  
-    if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200))
+    if (drawImage==true)
     {
+        if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200) ||
+            (mouseX>screenWidth && mouseClick==true))
+        {
             
-        if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
-        {
-            drawResult = 'correct';
-            correct++;
+            if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
+            {
+                drawResult = 'correct';
+                correct++;
+            }
+            else
+            {
+                drawResult = 'wrong';
+                wrong++;
+            }
+            updateData()
         }
-        else
-        {
-            drawResult = 'wrong';
-            wrong++;
-        }
-        updateData()
-    }
     
-    if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200))
-    {
+        if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
+            (mouseX<0 && mouseClick==true))
+        {
             
-        if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
-        {
-            drawResult = 'wrong';
-            wrong++;
+            if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
+            {
+                drawResult = 'wrong';
+                wrong++;
+            }
+            else
+            {
+                drawResult = 'correct';
+                correct++;
+            }
+            updateData();
         }
-        else
-        {
-            drawResult = 'correct';
-            correct++;
-        }
-        updateData();
     }
     //if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) ||
     //    ( checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) ||
@@ -368,6 +390,7 @@ function updateData()
         }
     }
     time = 0;
+    drawImage = false;
 }
 function strPosition(value)
 {

@@ -1,5 +1,26 @@
+html{
+background-color: rgb(210,210,210); 
+overflow: hidden;
+}
 body {
 }
-/*canvas {
+.buttonDiv{
+    display: inline-block;
+    width: 100px;
+    height: 100px;
+ 
+    text-align: center;
+    line-height: 90px;
+    font-size:30px;
+}
+#divNo{
+    color: red;
     border: 1px solid red;
+}
+#divYes{
+    color: green;
+    border: 1px solid green;
+}
+/*canvas {
+    
 }*/
