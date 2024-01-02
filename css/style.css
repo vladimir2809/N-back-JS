@@ -5,7 +5,8 @@ overflow: hidden;
 body {
 }
 .buttonDiv{
-    display: inline-block;
+    display: block;
+    position: absolute;
     width: 100px;
     height: 100px;
  

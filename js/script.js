@@ -8,6 +8,8 @@ var  canvasWidth= windowWidth;
 var  canvasHeight= windowHeight;
 var canvasWidthMore = null;
 var canvas;
+var divYes;
+var divNo;
 var context;
 var time = 0;
 var timeOld = new Date().getTime();
@@ -22,6 +24,9 @@ var correct = 0;
 var wrong = 0;
 var drawResult = null;
 var drawImage = true;
+var sideClick = false;
+var timeGame = 1000 * 60 * 5;
+var score = 0;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -85,7 +90,7 @@ function updateSize()
 {
     windowWidth=document.documentElement.clientWidth;
     windowHeight=document.documentElement.clientHeight;
-    let mult =1;
+    let mult = 1;
     if (windowWidth>=windowHeight)
     {
         canvasWidth = /*canvas.width = */windowHeight*screenWidth/screenHeight;
@@ -123,10 +128,50 @@ function updateSize()
        mouseMultX = windowWidth / screenWidth;
        mouseMultY = windowWidth / screenWidth;
     }
+    updateYesNo(mult);
     //setOffsetMousePosXY((window.innerWidth - canvas.width)/2,
     //                        (window.innerHeight - canvas.height)/2);
     //camera.width = canvasWidth;
     //camera.height = canvasHeight;
+}
+function updateYesNo(mult)
+{
+    let canvasPos = canvas.getBoundingClientRect();
+    //let yesPos= divYes.getBoundingClientRect()
+    let summWidth = (canvas.offsetWidth + 10 * 2 + 100*2+20)*mult;
+    //let valueTop = windowHeight / 2 - divYes.offsetWidth/2+'px';
+    //let valueLeft= canvasPos.left+canvas.offsetWidth + 10+'px'
+    //divYes.style.top = valueTop;
+    //divYes.style.left = valueLeft;
+
+    //valueTop = windowHeight / 2 - divNo.offsetWidth/2+'px';
+    //valueLeft= canvasPos.left -divNo.offsetWidth- 10+'px'
+    //divNo.style.top = valueTop;
+    //divNo.style.left = valueLeft;
+
+    if (summWidth>=windowWidth || windowHeight<100)
+    {
+        divYes.style.display = 'none';
+        divNo.style.display = 'none';
+        sideClick = false;
+    }
+    else
+    {
+        divYes.style.display = 'block';
+        divNo.style.display = 'block';
+        valueTop = windowHeight / 2 - divYes.offsetWidth/2+'px';
+        valueLeft= canvasPos.left+canvas.offsetWidth + 10+'px'
+        divYes.style.top = valueTop;
+        divYes.style.left = valueLeft;
+
+        valueTop = windowHeight / 2 - divNo.offsetWidth/2+'px';
+        valueLeft= canvasPos.left -divNo.offsetWidth- 10+'px'
+        divNo.style.top = valueTop;
+        divNo.style.left = valueLeft;
+        sideClick = true;
+    }
+    console.log(windowWidth, summWidth);
+    //console.log("yes "+divYes.offsetWidth ,"no "+ divNo.offsetWidth);
 }
 function preload()
 {
@@ -145,6 +190,8 @@ function preload()
 }
 function create()
 {
+    divYes = document.getElementById('divYes');
+    divNo = document.getElementById("divNo");
     canvas = document.getElementById("canvas");  
     context = canvas.getContext("2d");
     updateSize();
@@ -155,7 +202,7 @@ function create()
 }
 function drawAll()
 {
-    context.fillStyle = "rgb(210,210,210)"
+    context.fillStyle = "rgb(210,210,21)"
     context.fillRect(0, 0, screenWidth, screenHeight);
     drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+" "+strPosition(numBackStep)+' назад?',50,25,'green')
     //scale = 0.70;
@@ -183,9 +230,25 @@ function drawAll()
    // context.fillText('mouseX '+Math.floor(mouseX)+' mouseY '+Math.floor(mouseY),10,30);
     context.fillStyle = 'green';
     
-    context.fillText('Верно '+correct, 620, 120);
+    str = 'Верно ' + correct;
+    widthText=context.measureText(str).width;
+    context.fillText(str, 665-widthText/2, 120);
+
+    //context.fillText('Верно '+correct, 620, 120);
+
+    context.fillStyle = 'blue';
+    let second = Math.floor((timeGame / 1000) % (60));
+    second = second >= 10 ? second : '0' + second;
+    context.fillText('Время '+Math.floor(timeGame/(1000*60))+':'+second, 56, 170);
+
+    str = 'Очки: '+score;
+    widthText=context.measureText(str).width;
+    context.fillText(str, 665-widthText/2, 170);
+
+
     drawButton(buttonNo);
     drawButton(buttonYes);
+
     drawTextCenterScreen('Число позиций назад:',600-87,25,'green')
     drawButton(buttonPlus);
     drawButton(buttonMinus);
@@ -264,6 +327,8 @@ function gameLoop()
 {
     timeNow = new Date().getTime();
     time += timeNow - timeOld;
+    timeGame -= (timeNow - timeOld);//*10;
+    
     //wrong++;
     //if (time>100)
     //{
@@ -307,35 +372,42 @@ function gameLoop()
     if (drawImage==true)
     {
         if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200) ||
-            (mouseX>screenWidth && mouseClick==true))
+            (mouseX>screenWidth && mouseClick==true && sideClick==true))
         {
             
             if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
             {
                 drawResult = 'correct';
                 correct++;
+                addScore()
+              
             }
             else
             {
                 drawResult = 'wrong';
                 wrong++;
+                minusScore();
             }
             updateData()
         }
     
         if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
-            (mouseX<0 && mouseClick==true))
+            (mouseX<0 && mouseClick==true && sideClick==true))
         {
             
             if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
             {
                 drawResult = 'wrong';
                 wrong++;
+                minusScore();
+                
             }
             else
             {
                 drawResult = 'correct';
                 correct++;
+                addScore();
+              
             }
             updateData();
         }
@@ -368,6 +440,15 @@ function gameLoop()
     //    time = 0;
     //}
     
+}
+function addScore()
+{
+    score += 10 * Math.pow(2, numBackStep-1);
+}
+function minusScore()
+{
+    score -= 10 * Math.pow(2, numBackStep-1)*3;
+    score = score >= 0 ? score : 0;
 }
 function updateData()
 {
