@@ -17,6 +17,7 @@ var timeNow = new Date().getTime();
 var imageSpriteSet = null;
 var countLoad = 0;
 var numSprite = 0;
+var startSprite = false;
 var scale = 1.5;
 var numBackStep = 2;
 var dataArr = [];
@@ -27,6 +28,7 @@ var drawImage = true;
 var sideClick = false;
 var timeGame = 1000 * 60 * 5;
 var score = 0;
+var timeMenu = null;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -197,13 +199,48 @@ function create()
     updateSize();
     time = new Date().getTime();
     srand(time);
-    initKeyboardAndMouse(['ArrowLeft','ArrowRight']);
+    initKeyboardAndMouse(['ArrowLeft','ArrowRight','Escape']);
     initImgFromSpriteSet();
+    timeMenu = new Menu();
+    timeMenu.setOption({
+        listSelect:['1 минута','3 минуты','5 минут'],
+        listFlagOn:[true,true,true],
+        header : 'Выберите время',
+        width : screenWidth,
+        height: screenHeight,
+    });
+    timeMenu.being = false;
+    mainMenu = new Menu();
+    mainMenu.setOption({
+        listSelect:['Играть',"Продолжить"],
+        listFlagOn:[true,false],
+        header : 'N-назад',
+        width : screenWidth,
+        height: screenHeight,
+        headerFontSize: 40,
+        widthOneItem : 300,
+        heightOneItem : 60,
+        sizeFontItem :30,
+    });
+    mainMenu.being = true;
+    
+    gameMenu = new Menu();
+    gameMenu.setOption({
+        listSelect:['Продолжить',"Главное меню"],
+        listFlagOn:[true,true],
+        header:'Пауза',
+        width: 300,
+        height: 300,
+    });
+    gameMenu.y = 100;
+    gameMenu.yMenu = 200;
+    gameMenu.being = false;
 }
 function drawAll()
 {
     context.fillStyle = "rgb(210,210,21)"
     context.fillRect(0, 0, screenWidth, screenHeight);
+    
     drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+" "+strPosition(numBackStep)+' назад?',50,25,'green')
     //scale = 0.70;
    // for (let i = 0; i < 16; i++)
@@ -255,6 +292,9 @@ function drawAll()
     drawTextCenterScreen(numBackStep, 600 - 35, 25, 'green');
     if (drawResult=='wrong')drawCross(90, 220);
     if (drawResult =='correct')drawOk(640,220)
+    timeMenu.draw();
+    mainMenu.draw();
+    gameMenu.draw();
     //
 }
 function drawTextCenterScreen(str,y,fontSize,color)
@@ -327,7 +367,10 @@ function gameLoop()
 {
     timeNow = new Date().getTime();
     time += timeNow - timeOld;
-    timeGame -= (timeNow - timeOld);//*10;
+    if (gameMenu.being == false)
+    {
+        if (timeGame - (timeNow - timeOld) > 0) timeGame -= (timeNow - timeOld); else timeGame = 0;
+    }
     
     //wrong++;
     //if (time>100)
@@ -337,80 +380,151 @@ function gameLoop()
     //    time = 0;
     //}
     timeOld = new Date().getTime();
-    if (drawResult!=null)
+    if (mainMenu.being == false && timeMenu.being == false )
     {
-        if (drawImage==false && time>100)
+        if (keyUpDuration('Escape',100))
         {
-            drawImage = true;
-        }
-        if (time>500)
-        {
-            drawResult = null;
-            //drawImage = false;
-            time = 0;
-
+            gameMenu.being = !gameMenu.being;
         }
     }
-    //if (drawImage==false && time>100)
-    //{
-    //    drawImage = true;
-    //}
-    let mouseClick = mouseLeftClick();
-    let len = dataArr.length;
-    if (mouseClick==true)
+    if (mainMenu.being == false && timeMenu.being == false && gameMenu.being == false)
     {
-        //alert('click');
-        if (checkInObj(buttonPlus,mouseX,mouseY))
+
+        if (drawResult!=null)
         {
-            if (numBackStep<10)numBackStep++;
+            if (drawImage==false && time>100)
+            {
+                drawImage = true;
+            }
+            if (time>500)
+            {
+                drawResult = null;
+                //drawImage = false;
+                time = 0;
+
+            }
         }
-        if (checkInObj(buttonMinus,mouseX,mouseY))
+        //if (drawImage==false && time>100)
+        //{
+        //    drawImage = true;
+        //}
+        if (dataArr.length == 0 && startSprite==false) 
         {
-            if (numBackStep>1)numBackStep--;
+            numSprite = randomInteger(0, 8);
+            startSprite = true;
+
         }
-    }  
-    if (drawImage==true)
-    {
-        if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200) ||
-            (mouseX>screenWidth && mouseClick==true && sideClick==true))
+        let mouseClick = mouseLeftClick();
+        let len = dataArr.length;
+        if (mouseClick==true)
         {
+            //alert('click');
+            if (checkInObj(buttonPlus,mouseX,mouseY))
+            {
+                if (numBackStep<10)numBackStep++;
+            }
+            if (checkInObj(buttonMinus,mouseX,mouseY))
+            {
+                if (numBackStep>1)numBackStep--;
+            }
+        }  
+        if (drawImage==true)
+        {
+            if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200) ||
+                (mouseX>screenWidth && mouseClick==true && sideClick==true))
+            {
             
-            if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
-            {
-                drawResult = 'correct';
-                correct++;
-                addScore()
+                if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
+                {
+                    drawResult = 'correct';
+                    correct++;
+                    addScore()
               
+                }
+                else
+                {
+                    drawResult = 'wrong';
+                    wrong++;
+                    minusScore();
+                }
+                updateData()
             }
-            else
-            {
-                drawResult = 'wrong';
-                wrong++;
-                minusScore();
-            }
-            updateData()
-        }
     
-        if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
-            (mouseX<0 && mouseClick==true && sideClick==true))
-        {
+            if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
+                (mouseX<0 && mouseClick==true && sideClick==true))
+            {
             
-            if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
-            {
-                drawResult = 'wrong';
-                wrong++;
-                minusScore();
+                if (len>numBackStep && dataArr[len-numBackStep]==numSprite)
+                {
+                    drawResult = 'wrong';
+                    wrong++;
+                    minusScore();
                 
-            }
-            else
-            {
-                drawResult = 'correct';
-                correct++;
-                addScore();
+                }
+                else
+                {
+                    drawResult = 'correct';
+                    correct++;
+                    addScore();
               
+                }
+                updateData();
             }
-            updateData();
         }
+    }
+    gameMenu.update();
+    timeMenu.update();
+    mainMenu.update();
+    if (mainMenu.being==true)
+    {
+        mainMenu.selectOn(function(select) {
+            console.log(select);
+            if (select == 'Играть') 
+            {
+                mainMenu.being = false;
+                timeMenu.being = true;
+            }
+        });
+    }
+    if (timeMenu.being==true)
+    {
+        timeMenu.selectOn(function(select) {
+            console.log(select);
+            if (select == '1 минута') 
+            {
+                timeMenu.being = false;
+                timeGame = 1000 * 60;
+            
+            }
+            if (select == '3 минуты') 
+            {
+                timeMenu.being = false;
+                timeGame = 1000 * 60 * 3;
+            
+            }
+            if (select == '5 минут') 
+            {
+                timeMenu.being = false;
+                timeGame = 1000 * 60 * 5;
+            
+            }
+        });
+    }
+    if (gameMenu.being==true)
+    {
+        gameMenu.selectOn(function (select) {
+            if (select == 'Продолжить') {
+                gameMenu.being = false;
+            }
+            if (select == 'Главное меню') {
+                gameMenu.being = false;
+                timeGame = 0;
+                dataArr = [];
+                mainMenu.being = true;
+                startSprite = false;
+            }
+        });
+
     }
     //if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) ||
     //    ( checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) ||
