@@ -15,9 +15,11 @@ var time = 0;
 var timeOld = new Date().getTime();
 var timeNow = new Date().getTime();
 var imageSpriteSet = null;
+var imageStar = null;
 var countLoad = 0;
 var numSprite = 0;
 var startSprite = false;
+var startGame = false;
 var scale = 1.5;
 var numBackStep = 2;
 var dataArr = [];
@@ -28,6 +30,7 @@ var drawImage = true;
 var sideClick = false;
 var timeGame = 1000 * 60 * 5;
 var score = 0;
+var countStar = 3;
 var timeMenu = null;
 var dataImg={
     xSp:0,
@@ -76,6 +79,12 @@ var buttonMinus = {
     colorText:'white',
     color:'black',
 } 
+var buttonGameMenu = {
+    x:1,
+    y:1,
+    width:40,
+    height:40,
+}
 var dataImgArr = [];
 window.addEventListener('load', function () {
     preload();
@@ -179,13 +188,23 @@ function preload()
 {
     imageSpriteSet = new Image();
     imageSpriteSet.src = 'img/tailset.png';
+    imageStar = new Image();
+    imageStar.src = 'img/star.png';
     imageSpriteSet.onload = function () {
         countLoad++;
         //imageLoad = true;
-        if (countLoad == 1) console.log('image load!');
+        if (countLoad == 1) console.log('image tailSet load!');
 
     }
+    imageStar.onload = function () {
+        countLoad++;
+        if (countLoad == 2) console.log('image star load!');
+    }
     imageSpriteSet.onerror = function () {
+        alert("во время загрузки произошла ошибка");
+        //alert(pair[0].name);
+    }
+    imageStar.onerror = function () {
         alert("во время загрузки произошла ошибка");
         //alert(pair[0].name);
     }
@@ -263,7 +282,7 @@ function drawAll()
     context.fillStyle = 'red';
     let str = 'Не верно ' + wrong;
     widthText=context.measureText(str).width;
-    context.fillText(str, 120-widthText/2, 120);
+    context.fillText(str, 56/*120-widthText/2*/, 120);
    // context.fillText('mouseX '+Math.floor(mouseX)+' mouseY '+Math.floor(mouseY),10,30);
     context.fillStyle = 'green';
     
@@ -290,11 +309,15 @@ function drawAll()
     drawButton(buttonPlus);
     drawButton(buttonMinus);
     drawTextCenterScreen(numBackStep, 600 - 35, 25, 'green');
-    if (drawResult=='wrong')drawCross(90, 220);
-    if (drawResult =='correct')drawOk(640,220)
+    if (drawResult == 'wrong') drawCross(90, 220);
+    if (drawResult == 'correct') drawOk(640, 220);
+
     timeMenu.draw();
     mainMenu.draw();
     gameMenu.draw();
+    if (startGame == true) drawMenuLabel(buttonGameMenu.x ,buttonGameMenu.y,
+            buttonGameMenu.width ,buttonGameMenu.height );
+    if (startGame == true)  drawScreenResult();
     //
 }
 function drawTextCenterScreen(str,y,fontSize,color)
@@ -353,6 +376,42 @@ function drawOk(x,y)
 
     context.restore();
 }
+function drawMenuLabel(x,y,width,height)
+{
+    //let width = 40;
+    //let height = 40;
+    context.strokeStyle = 'rgb(255,0,0)';
+    context.strokeRect(x, y, width, height);
+    for (let i = 0; i < 3; i++)
+    {
+        context.beginPath();
+        context.lineWidth = 3;
+        context.moveTo(x + 10, y + (i + 1) * (height / (3 + 1)));
+        context.lineTo(x + width - 10, y + (i + 1) * (height / (3 + 1)));
+        context.stroke();
+    }
+}
+function drawScreenResult()
+{
+   
+    let width = 700;
+    let height = 400; 
+    let x = screenWidth/2-width/2;
+    let y = screenHeight/2-height/2;
+    let scale = 3;
+    let sizeStar = 40;
+    countStar = 1;
+    context.fillStyle = 'rgb(0,0,0)';
+    context.fillRect(x, y, width, height);
+    for (let i = 0; i < countStar;i++)
+    {
+        context.save();
+        //context.scale(scale,scale);
+        widthStars = sizeStar * (countStar);
+        context.drawImage(imageStar,x+(width)/(2.0)-widthStars/2+i*sizeStar,y);
+        context.restore();
+    }
+}
 //var buttonNo = {
 //    x:100,
 //    y:500,
@@ -387,6 +446,17 @@ function gameLoop()
             gameMenu.being = !gameMenu.being;
         }
     }
+    if (startGame==true)
+    {
+        divYes.style.display = 'block';
+        divNo.style.display = 'block';
+    }
+    else
+    {
+        //console.log('none');
+        divYes.style.display = 'none';
+        divNo.style.display = 'none';
+    }
     if (mainMenu.being == false && timeMenu.being == false && gameMenu.being == false)
     {
 
@@ -414,6 +484,7 @@ function gameLoop()
             startSprite = true;
 
         }
+  
         let mouseClick = mouseLeftClick();
         let len = dataArr.length;
         if (mouseClick==true)
@@ -430,7 +501,7 @@ function gameLoop()
         }  
         if (drawImage==true)
         {
-            if ((checkInObj(buttonYes,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowRight',200) ||
+            if ((checkInObj(buttonYes,mouseX,mouseY)&& mouseClick==true) || keyUpDuration('ArrowRight',200) ||
                 (mouseX>screenWidth && mouseClick==true && sideClick==true))
             {
             
@@ -450,7 +521,7 @@ function gameLoop()
                 updateData()
             }
     
-            if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
+            if ((checkInObj(buttonNo,mouseX,mouseY) /*&& mouseClick==true*/) || keyUpDuration('ArrowLeft',200) ||
                 (mouseX<0 && mouseClick==true && sideClick==true))
             {
             
@@ -470,6 +541,10 @@ function gameLoop()
                 }
                 updateData();
             }
+        }
+        if ((checkInObj(buttonGameMenu,mouseX,mouseY) && mouseClick==true))
+        {
+            gameMenu.being = true;
         }
     }
     gameMenu.update();
@@ -494,18 +569,21 @@ function gameLoop()
             {
                 timeMenu.being = false;
                 timeGame = 1000 * 60;
+                startGame=true;
             
             }
             if (select == '3 минуты') 
             {
                 timeMenu.being = false;
                 timeGame = 1000 * 60 * 3;
+                startGame=true;
             
             }
             if (select == '5 минут') 
             {
                 timeMenu.being = false;
                 timeGame = 1000 * 60 * 5;
+                startGame=true;
             
             }
         });
@@ -522,6 +600,10 @@ function gameLoop()
                 dataArr = [];
                 mainMenu.being = true;
                 startSprite = false;
+                startGame = false;
+                correct = 0;
+                wrong = 0;
+                score = 0;
             }
         });
 
