@@ -20,6 +20,7 @@ var countLoad = 0;
 var numSprite = 0;
 var startSprite = false;
 var startGame = false;
+var endGame = false;
 var scale = 1.5;
 var numBackStep = 2;
 var dataArr = [];
@@ -29,7 +30,10 @@ var drawResult = null;
 var drawImage = true;
 var sideClick = false;
 var timeGame = 1000 * 60 * 5;
+var timeGameRAM = 0;
 var score = 0;
+var scoreRecord = 1657;
+var multScore = 1;
 var countStar = 3;
 var timeMenu = null;
 var dataImg={
@@ -84,6 +88,36 @@ var buttonGameMenu = {
     y:1,
     width:40,
     height:40,
+}
+var buttonRestart = {
+
+    being:false,
+
+    x:50,
+    y:450,
+    width:200,
+    height:50,
+
+    str:'Рестарт',
+    fontSize:25,
+    colorText:'white',
+    color:'red',
+
+}
+var buttonMainMenu = {
+
+    being:false,
+
+    x:550,
+    y:450,
+    width:200,
+    height:50,
+
+    str:'Главное меню',
+    fontSize:25,
+    colorText:'white',
+    color:'red',
+
 }
 var dataImgArr = [];
 window.addEventListener('load', function () {
@@ -317,7 +351,7 @@ function drawAll()
     gameMenu.draw();
     if (startGame == true) drawMenuLabel(buttonGameMenu.x ,buttonGameMenu.y,
             buttonGameMenu.width ,buttonGameMenu.height );
-    if (startGame == true)  drawScreenResult();
+    if (endGame == true)  drawScreenResult();
     //
 }
 function drawTextCenterScreen(str,y,fontSize,color)
@@ -400,7 +434,7 @@ function drawScreenResult()
     let y = screenHeight/2-height/2;
     let scale = 3;
     let sizeStar = 40;
-    countStar = 1;
+    //countStar = 3;
     context.fillStyle = 'rgb(0,0,0)';
     context.fillRect(x, y, width, height);
     for (let i = 0; i < countStar;i++)
@@ -411,6 +445,32 @@ function drawScreenResult()
         context.drawImage(imageStar,x+(width)/(2.0)-widthStars/2+i*sizeStar,y);
         context.restore();
     }
+    context.fillStyle = 'white';
+
+    context.font = '35px Arial';
+    let str = 'Всего ходов: ' +(wrong+correct);
+    let widthText=context.measureText(str).width;
+    let xText = width/2 - widthText / 2;
+    context.fillText(str, x+xText, y+100);
+
+    str = 'ошибок: ' + wrong;
+    widthText=context.measureText(str).width;
+    xText = width/2 - widthText / 2;
+    context.fillText(str, x+xText, y+150);
+
+    context.font = '45px Arial';
+    str = 'Очки ' + score + " x " + multScore + ' = ' + score * multScore;
+    widthText=context.measureText(str).width;
+    xText = width/2 - widthText / 2;
+    context.fillText(str, x+xText, y+230);
+
+    str = 'Старый рекорд = '+scoreRecord;
+    widthText=context.measureText(str).width;
+    xText = width/2 - widthText / 2;
+    context.fillText(str, x+xText, y+305);
+
+    drawButton(buttonRestart);
+    drawButton(buttonMainMenu);
 }
 //var buttonNo = {
 //    x:100,
@@ -422,6 +482,40 @@ function drawScreenResult()
 //    colorText:'red',
 //    color:'black',
 //} 
+function removeRecordScore()
+{
+    localStorage.removeItem('NBackRecord');
+}
+function checkRecordScore()
+{
+    if (localStorage.getItem('NBackRecord')!=null && 
+        localStorage.getItem('NBackRecord')!=undefined)
+    {
+        return true;
+    }
+    return false;
+}
+function saveRecordScore()
+{
+    localStorage.setItem('NBackRecord', JSON.stringify({ timeGameSave:timeGameRAM,
+                                       scoreRecord,scoreRecord }));
+}
+function loadRecordScore()
+{
+    let data=localStorage.getItem('NBackRecord');
+    //alert(data);
+    data = JSON.parse(data);
+    let timeSave = 0;
+    if (typeof(data.timeGameRam)=='number')
+    {
+        timeSave=data.timeGameRam;
+    }
+    if (typeof(data.scoreRecord)=='number')
+    {
+        scoreRecord=data.scoreRecord;
+    }
+
+}
 function gameLoop()
 {
     timeNow = new Date().getTime();
@@ -457,7 +551,38 @@ function gameLoop()
         divYes.style.display = 'none';
         divNo.style.display = 'none';
     }
-    if (mainMenu.being == false && timeMenu.being == false && gameMenu.being == false)
+    if (startGame == true && timeGame == 0) 
+    {
+        endGame = true;
+        if (wrong<=(wrong+correct)*0.05)
+        {
+            countStar = 3;
+            multScore = 2;
+        }
+        else if (wrong>(wrong+correct)*0.05 && wrong<=(wrong+correct)*0.15)
+        {
+            countStar = 2;
+            multScore = 1.5;
+        }
+        else
+        {
+            countStar = 1;
+            multScore = 1;
+        }
+    }
+    if (endGame==true)
+    {
+        let mouseClick = mouseLeftClick();
+        if ((checkInObj(buttonRestart,mouseX,mouseY)&& mouseClick==true))
+        {
+            resetDataGame();
+            startGame = true;
+            timeGame = timeGameRAM;
+           
+        }
+    }
+    if (mainMenu.being == false && timeMenu.being == false && 
+        gameMenu.being == false && endGame==false)
     {
 
         if (drawResult!=null)
@@ -521,7 +646,7 @@ function gameLoop()
                 updateData()
             }
     
-            if ((checkInObj(buttonNo,mouseX,mouseY) /*&& mouseClick==true*/) || keyUpDuration('ArrowLeft',200) ||
+            if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
                 (mouseX<0 && mouseClick==true && sideClick==true))
             {
             
@@ -568,21 +693,21 @@ function gameLoop()
             if (select == '1 минута') 
             {
                 timeMenu.being = false;
-                timeGame = 1000 * 60;
+                timeGameRAM = timeGame = 1000 * 60;
                 startGame=true;
             
             }
             if (select == '3 минуты') 
             {
                 timeMenu.being = false;
-                timeGame = 1000 * 60 * 3;
+                timeGameRAM = timeGame = 1000 * 60 * 3;
                 startGame=true;
             
             }
             if (select == '5 минут') 
             {
                 timeMenu.being = false;
-                timeGame = 1000 * 60 * 5;
+                timeGameRAM = timeGame = 1000 * 60 * 5;
                 startGame=true;
             
             }
@@ -596,14 +721,18 @@ function gameLoop()
             }
             if (select == 'Главное меню') {
                 gameMenu.being = false;
-                timeGame = 0;
-                dataArr = [];
                 mainMenu.being = true;
-                startSprite = false;
-                startGame = false;
-                correct = 0;
-                wrong = 0;
-                score = 0;
+                resetDataGame();
+                //timeGame = 0;
+                //dataArr = [];
+               
+                //startSprite = false;
+                //startGame = false;
+                //endGame = false;
+                //correct = 0;
+                //wrong = 0;
+                //score = 0;
+                
             }
         });
 
@@ -636,6 +765,17 @@ function gameLoop()
     //    time = 0;
     //}
     
+}
+function resetDataGame()
+{
+    timeGame = 0;
+    dataArr = [];
+    startSprite = false;
+    startGame = false;
+    endGame = false;
+    correct = 0;
+    wrong = 0;
+    score = 0;
 }
 function addScore()
 {
