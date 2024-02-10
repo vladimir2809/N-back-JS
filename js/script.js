@@ -43,9 +43,11 @@ var dataImg={
     spWidth:0,
     spHeight:0,
 }
+var yYesNo = 470;
+var deltaXYesNo = 50;
 var buttonNo = {
-    x:800/2-100-20,//*2,
-    y:430,
+    x:800/2-100-deltaXYesNo,//-20,//*2,
+    y:yYesNo,
     width: 100,
     height: 50,
     str:'<= Нет',
@@ -54,8 +56,8 @@ var buttonNo = {
     color:'black',
 } 
 var buttonYes = {
-    x:800/2+20,//+100,
-    y:430,
+    x:800/2+deltaXYesNo,//+20,//+100,
+    y:yYesNo,
     width: 100,
     height: 50,
     str:'ДА =>',
@@ -292,6 +294,16 @@ function create()
     gameMenu.y = 100;
     gameMenu.yMenu = 200;
     gameMenu.being = false;
+
+    NMenu = new Menu();
+
+    NMenu.setOption({
+        listSelect:['N=1',"N=2","N=3","N=4","N=5","N=6","N=7"],
+        listFlagOn:[true,true,true,true,true,true,true],
+        header:'Выберите N',
+        width : screenWidth,
+        height: screenHeight,
+    });
 }
 function drawAll()
 {
@@ -343,18 +355,19 @@ function drawAll()
     drawButton(buttonNo);
     drawButton(buttonYes);
 
-    drawTextCenterScreen('Число позиций назад:',600-87,25,'green')
-    drawButton(buttonPlus);
-    drawButton(buttonMinus);
-    drawTextCenterScreen(numBackStep, 600 - 35, 25, 'green');
+    //drawTextCenterScreen('Число позиций назад:',600-87,25,'green')
+    ////drawButton(buttonPlus);
+    ////drawButton(buttonMinus);
+    //drawTextCenterScreen(numBackStep, 600 - 35, 25, 'green');
     if (drawResult == 'wrong') drawCross(90, 220);
     if (drawResult == 'correct') drawOk(640, 220);
 
     timeMenu.draw();
     mainMenu.draw();
     gameMenu.draw();
+    NMenu.draw();
     if (startGame == true) drawMenuLabel(buttonGameMenu.x ,buttonGameMenu.y,
-            buttonGameMenu.width ,buttonGameMenu.height );
+                                         buttonGameMenu.width ,buttonGameMenu.height );
     if (endGame == true)  drawScreenResult();
     //
 }
@@ -569,7 +582,8 @@ function gameLoop()
 {
     timeNow = new Date().getTime();
     time += timeNow - timeOld;
-    if (gameMenu.being == false)
+    if (mainMenu.being == false && timeMenu.being == false &&
+        NMenu.being == false && gameMenu.being == false)
     {
         if (timeGame - (timeNow - timeOld) > 0) timeGame -= (timeNow - timeOld); else timeGame = 0;
     }
@@ -582,7 +596,7 @@ function gameLoop()
     //    time = 0;
     //}
     timeOld = new Date().getTime();
-    if (mainMenu.being == false && timeMenu.being == false )
+    if (mainMenu.being == false && timeMenu.being == false  && NMenu.being == false)
     {
         if (keyUpDuration('Escape',100))
         {
@@ -637,7 +651,8 @@ function gameLoop()
         }
     }
     if (mainMenu.being == false && timeMenu.being == false && 
-        gameMenu.being == false && endGame==false)
+        gameMenu.being == false && NMenu.being == false &&
+        endGame==false)
     {
 
         if (drawResult!=null)
@@ -667,18 +682,18 @@ function gameLoop()
   
         let mouseClick = mouseLeftClick();
         let len = dataArr.length;
-        if (mouseClick==true)
-        {
-            //alert('click');
-            if (checkInObj(buttonPlus,mouseX,mouseY))
-            {
-                if (numBackStep<10)numBackStep++;
-            }
-            if (checkInObj(buttonMinus,mouseX,mouseY))
-            {
-                if (numBackStep>1)numBackStep--;
-            }
-        }  
+        //if (mouseClick==true)
+        //{
+        //    //alert('click');
+        //    if (checkInObj(buttonPlus,mouseX,mouseY))
+        //    {
+        //        if (numBackStep<10)numBackStep++;
+        //    }
+        //    if (checkInObj(buttonMinus,mouseX,mouseY))
+        //    {
+        //        if (numBackStep>1)numBackStep--;
+        //    }
+        //}  
         if (drawImage==true)
         {
             if ((checkInObj(buttonYes,mouseX,mouseY)&& mouseClick==true) || keyUpDuration('ArrowRight',200) ||
@@ -729,6 +744,7 @@ function gameLoop()
     }
     gameMenu.update();
     timeMenu.update();
+    NMenu.update();
     mainMenu.update();
     if (mainMenu.being==true)
     {
@@ -773,6 +789,25 @@ function gameLoop()
             if (select == '1 минута' || select == '3 минуты' || select == '5 минут'  )
             {
                 timeMenu.being = false;
+                NMenu.being = true;
+                //loadRecordScore(timeGameRAM);
+                //startGame=true;
+                //if (sideClick==true)
+                //{
+                //    divYes.style.display = 'block';
+                //    divNo.style.display = 'block';
+                //    updateYesNo();
+                //}
+            }
+        });
+    }
+    if (NMenu.being==true)
+    {
+        NMenu.selectOn(function (select) {
+            console.log(select);
+            if (select!=null)
+            {
+                NMenu.being = false;
                 loadRecordScore(timeGameRAM);
                 startGame=true;
                 if (sideClick==true)
