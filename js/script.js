@@ -649,26 +649,31 @@ function gameLoop()
             timeGame = timeGameRAM;
            
         }
+        if ((checkInObj(buttonMainMenu,mouseX,mouseY)&& mouseClick==true))
+        {
+            resetDataGame();
+            mainMenu.being = true;
+        }
     }
     if (mainMenu.being == false && timeMenu.being == false && 
         gameMenu.being == false && NMenu.being == false &&
         endGame==false)
     {
 
-        if (drawResult!=null)
-        {
-            if (drawImage==false && time>100)
-            {
-                drawImage = true;
-            }
-            if (time>500)
-            {
-                drawResult = null;
-                //drawImage = false;
-                time = 0;
+        //if (drawResult!=null)
+        //{
+        //    if (drawImage==false && time>100)
+        //    {
+        //        drawImage = true;
+        //    }
+        //    if (time>500)
+        //    {
+        //        drawResult = null;
+        //        //drawImage = false;
+        //        time = 0;
 
-            }
-        }
+        //    }
+        //}
         //if (drawImage==false && time>100)
         //{
         //    drawImage = true;
@@ -696,7 +701,7 @@ function gameLoop()
         //}  
         if (drawImage==true)
         {
-            if ((checkInObj(buttonYes,mouseX,mouseY)&& mouseClick==true) || keyUpDuration('ArrowRight',200) ||
+            if ((checkInObj(buttonYes,mouseX,mouseY)&& mouseClick==true) || keyUpDuration('ArrowRight',50) ||
                 (mouseX>screenWidth && mouseClick==true && sideClick==true))
             {
             
@@ -716,7 +721,7 @@ function gameLoop()
                 updateData()
             }
     
-            if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',200) ||
+            if ((checkInObj(buttonNo,mouseX,mouseY) && mouseClick==true) || keyUpDuration('ArrowLeft',50) ||
                 (mouseX<0 && mouseClick==true && sideClick==true))
             {
             
@@ -735,6 +740,21 @@ function gameLoop()
               
                 }
                 updateData();
+            }
+        }  
+        if (drawImage==false && time>100)
+        {
+            drawImage = true;
+        }
+        if (drawResult!=null)
+        {
+       
+            if (time>500)
+            {
+                drawResult = null;
+                //drawImage = false;
+                time = 0;
+
             }
         }
         if ((checkInObj(buttonGameMenu,mouseX,mouseY) && mouseClick==true))
@@ -810,6 +830,9 @@ function gameLoop()
                 NMenu.being = false;
                 loadRecordScore(timeGameRAM);
                 startGame=true;
+                let N = null;
+                N = select.split('=')[1];
+                numBackStep = N;
                 if (sideClick==true)
                 {
                     divYes.style.display = 'block';
@@ -885,11 +908,14 @@ function resetDataGame()
 }
 function addScore()
 {
-    score += 10 * Math.pow(2, numBackStep-1);
+    //score += 10 * Math.pow(2, numBackStep-1);
+    score += 10 *  numBackStep;
+
 }
 function minusScore()
 {
-    score -= 10 * Math.pow(2, numBackStep-1)*3;
+    //score -= 10 * Math.pow(2, numBackStep-1)*3;
+    score -= 10 * numBackStep * 3;
     score = score >= 0 ? score : 0;
 }
 function updateData()
