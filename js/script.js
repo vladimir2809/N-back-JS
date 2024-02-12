@@ -258,7 +258,7 @@ function create()
     updateSize();
     time = new Date().getTime();
     srand(time);
-    initKeyboardAndMouse(['ArrowLeft','ArrowRight','Escape']);
+    initKeyboardAndMouse(['ArrowLeft','ArrowRight','Escape','KeyS']);
     initImgFromSpriteSet();
     timeMenu = new Menu();
     timeMenu.setOption({
@@ -508,6 +508,57 @@ function drawScreenResult()
 //    colorText:'red',
 //    color:'black',
 //} 
+
+/////////////////////////////////////////////
+//  АВТОСОХРАНЕНИЕ 
+/////////////////////////////////////////////
+function removeAutoSave()
+{
+
+}
+function checkAutoSave()
+{
+    if (localStorage.getItem('NBackAutoSave')!=null && 
+        localStorage.getItem('NBackAutoSave')!=undefined)
+    {
+        return true;
+    }
+    return false;
+}
+function saveAutoSave()
+{
+    let data = { dataArr: dataArr, numSprite:numSprite, timeGame: timeGame, numBackStep: numBackStep };
+    localStorage.setItem('NBackAutoSave', JSON.stringify(data));
+    console.log(data);
+}
+function loadAutoSave()
+{
+    if (checkAutoSave()==true)
+    {
+        let data=localStorage.getItem('NBackAutoSave');
+        data=JSON.parse(data)
+        if (typeof(data.dataArr)=='array')
+        {
+            dataArr=data.dataArr;
+        }
+        if (typeof(data.numSprite)=='number')
+        {
+            numSprite=data.numSprite;
+        }
+        if (typeof(data.timeGame)=='number')
+        {
+            timeGame=data.timeGame;
+        }
+        if (typeof(data.numBackStep)=='number')
+        {
+            numBackStep=data.numBackStep;
+        }
+    }
+}
+
+/////////////////////////////////////////////
+//  СОХРАНЕНИЕ РЕКОРДА ОЧОКОВ
+/////////////////////////////////////////////
 function removeRecordScore()
 {
     localStorage.removeItem('NBackRecord');
@@ -533,15 +584,18 @@ function saveRecordScore(timeGame, score)
     let flag = false;
     for (let i = 0; i < data.length;i++)
     {
-        if (data[i].timeGameSave==timeGame && scoreRecord<score)
+        if (data[i].timeGameSave==timeGame /*&& scoreRecord<score*/)
         {
-            data[i]={ timeGameSave:timeGame, scoreRecord:score}
-            
-        }
-        if (data[i].timeGameSave==timeGame)
-        {
+            if (scoreRecord<score)
+            {
+                data[i]={ timeGameSave:timeGame, scoreRecord:score}
+            }
             flag = true;
         }
+        //if (data[i].timeGameSave==timeGame)
+        //{
+            
+        //}
     }
     if (flag==false)
     {
@@ -601,6 +655,10 @@ function gameLoop()
         if (keyUpDuration('Escape',100))
         {
             gameMenu.being = !gameMenu.being;
+        }
+        if (keyUpDuration('KeyS',100))
+        {
+            loadAutoSave()
         }
     }
     if (startGame==false)
@@ -940,6 +998,8 @@ function updateData()
     }
     time = 0;
     drawImage = false;
+    if (dataArr.length > 10) dataArr.shift();
+    saveAutoSave();
 }
 function strPosition(value)
 {
