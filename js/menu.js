@@ -22,6 +22,7 @@
     this.loadMapTrue = true;
     this.blocking = false;
     this.selectNow = false;
+    this.controllKey = false;
     this.setOption=function(option)
     {
         for (var attr1 in this)
@@ -108,8 +109,11 @@
             let mY = mouseY;//-mouseOffsetY;
             let x = this.xMenu;
             let y = this.yMenu;
-            this.numSelectHower = null;
-            this.selectHower = null;
+            if ( this.controllKey ==false)
+            {    
+                this.numSelectHower = null;
+                this.selectHower = null;
+            }
             if (this.blocking==false)
             {
                 for (let i = 0;i<this.listSelect.length;i++)
@@ -133,6 +137,45 @@
             }   
         }
         //console.log(777);
+    }
+    this.controllKeyboard=function(up,down,enter)
+    {
+        let value = null;
+        if (this.numSelectHower==null)
+        {        
+            if (up==true)
+            {
+                value = this.numSelectHower = this.listSelect.length - 1;
+                this.selectHower = this.listSelect[value];
+                this.controllKey = true;
+            }
+            if (down==true)
+            {
+                value = this.numSelectHower = 0;
+                this.selectHower = this.listSelect[value];
+                this.controllKey = true;
+            }
+        }
+        else
+        {
+            if (up==true)
+            {
+                //value = this.numSelectHower--;
+                value = this.numSelectHower = --this.numSelectHower >= 0 ?
+                    this.numSelectHower :
+                    this.listSelect.length-1;
+                this.selectHower = this.listSelect[value];
+                this.controllKey = true;
+            }
+            if (down==true)
+            {
+                value = this.numSelectHower=++this.numSelectHower<this.listSelect.length?
+                                    this.numSelectHower:
+                                    0;
+                this.selectHower = this.listSelect[value];
+                this.controllKey = true;
+            }
+        }
     }
     this.selectOn=function(callback)
     {

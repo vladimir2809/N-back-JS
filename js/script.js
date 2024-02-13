@@ -258,7 +258,7 @@ function create()
     updateSize();
     time = new Date().getTime();
     srand(time);
-    initKeyboardAndMouse(['ArrowLeft','ArrowRight','Escape','KeyS']);
+    initKeyboardAndMouse(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','KeyS']);
     initImgFromSpriteSet();
     timeMenu = new Menu();
     timeMenu.setOption({
@@ -271,8 +271,8 @@ function create()
     timeMenu.being = false;
     mainMenu = new Menu();
     mainMenu.setOption({
-        listSelect:['Играть',"Продолжить"],
-        listFlagOn:[true,false],
+        listSelect:['Играть',/*"Продолжить"*/],
+        listFlagOn:[true,/*false*/],
         header : 'N-назад',
         width : screenWidth,
         height: screenHeight,
@@ -281,7 +281,17 @@ function create()
         heightOneItem : 60,
         sizeFontItem :30,
     });
-    mainMenu.being = true;
+    if (checkAutoSave()==true)
+    {
+        loadAutoSave();
+        startSprite = true;
+        startGame = true
+    }
+    else
+    {
+        mainMenu.being = true;
+    }
+ 
     
     gameMenu = new Menu();
     gameMenu.setOption({
@@ -514,7 +524,7 @@ function drawScreenResult()
 /////////////////////////////////////////////
 function removeAutoSave()
 {
-
+     localStorage.removeItem('NBackAutoSave');
 }
 function checkAutoSave()
 {
@@ -695,6 +705,7 @@ function gameLoop()
         } 
         scoreTotal = score * multScore;
         saveRecordScore(timeGameRAM, scoreTotal);
+        removeAutoSave();
     }
     if (endGame==true)
     {
@@ -740,6 +751,7 @@ function gameLoop()
         {
             numSprite = randomInteger(0, 8);
             startSprite = true;
+            saveAutoSave();
 
         }
   
@@ -822,6 +834,7 @@ function gameLoop()
     }
     gameMenu.update();
     timeMenu.update();
+    timeMenu.controllKeyboard();
     NMenu.update();
     mainMenu.update();
     if (mainMenu.being==true)
@@ -839,6 +852,7 @@ function gameLoop()
     }
     if (timeMenu.being==true)
     {
+        timeMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50));
         timeMenu.selectOn(function(select) {
             console.log(select);
          
@@ -881,6 +895,7 @@ function gameLoop()
     }
     if (NMenu.being==true)
     {
+        NMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50));
         NMenu.selectOn(function (select) {
             console.log(select);
             if (select!=null)
