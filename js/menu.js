@@ -111,15 +111,14 @@
             let mY = mouseY;//-mouseOffsetY;
             let x = this.xMenu;
             let y = this.yMenu;
-            //if ( this.controllKey ==false)
-            //{    
-            //    this.numSelectHower = null;
-            //    this.selectHower = null;
-            //}
+            if ( this.controllKey ==false &&  this.mouseHower == false)
+            {    
+                this.numSelectHower = null;
+                this.selectHower = null;
+            }
             if (this.blocking==false )
             {
-                //let flag = false;
-                if ( (checkMouseMove(100)==true && this.keysControllFuncOn==true ) || this.keysControllFuncOn == false)
+                let flag = false;
                 for (let i = 0;i<this.listSelect.length;i++)
                 {
                     if ( mX>x && mX<x+this.widthOneItem &&
@@ -127,15 +126,19 @@
                         mY<y+i*(this.heightOneItem+this.dist)+ this.heightOneItem &&
                         this.listFlagOn[i]==true)
                     {
-                        this.numSelectHower = i;
-                        this.selectHower = this.listSelect[i];
+                        if ( (checkMouseMove(100)==true && this.keysControllFuncOn==true ) || 
+                            this.keysControllFuncOn == false)
+                        {
+                            this.numSelectHower = i;
+                            this.selectHower = this.listSelect[i];
+                        }
                         this.mouseHower = true;
-                        //flag = true;
+                        flag = true;
                     }
 
                 }
-                //if (flag == false && this.keysControllFuncOn == true &&
-                //        checkMouseMove(100)==true) this.mouseHower = false;
+                if (flag == false /*&& this.keysControllFuncOn == true &&
+                        checkMouseMove(100)==true*/) this.mouseHower = false;
             }
             if (mouseLeftClick() && this.mouseHower==true)
             {
