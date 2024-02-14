@@ -9,6 +9,8 @@ var mouseMultX = 1;
 var mouseMultY = 1;
 var mouseX = 0;
 var mouseY = 0;
+var mouseMove = false;
+var timeLastVMouseMove = null;
 var mouseLeftPress=false;
 var mouseClick=false;
 var wheelDelta=0;
@@ -53,6 +55,7 @@ function initKeyboardAndMouse(keyArr)// инициализировать пер�
         let mouseOfsY=(window.innerHeight - canvas.height)/2;
         mouseX = (event.clientX-mouseOfsX)/mouseMultX;
         mouseY = (event.clientY-mouseOfsY)/mouseMultY;
+        timeLastVMouseMove = new Date().getTime();
        // console.log("mX:"+mouseX+" mY:"+mouseY)
     });
     window.addEventListener('mousedown', function () {
@@ -156,6 +159,21 @@ function clearPressKey()
     }    
     mouseLeftPress=false;
     mouseClick=false;
+}
+function checkMouseMove(time)
+{
+    let timeNow=new Date().getTime();
+    console.log(timeLastVMouseMove);
+    if (timeLastVMouseMove!=null && time>timeNow-timeLastVMouseMove)
+    {
+        return true;
+
+    }
+    else
+    {
+        timeLastVMouseMove = null;
+        return false;
+    }
 }
 function checkPressKey(code)// проверить что кнопка в данный момент нажата
 {

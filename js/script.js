@@ -258,7 +258,7 @@ function create()
     updateSize();
     time = new Date().getTime();
     srand(time);
-    initKeyboardAndMouse(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','KeyS']);
+    initKeyboardAndMouse(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','Enter','KeyS']);
     initImgFromSpriteSet();
     timeMenu = new Menu();
     timeMenu.setOption({
@@ -834,11 +834,13 @@ function gameLoop()
     }
     gameMenu.update();
     timeMenu.update();
-    timeMenu.controllKeyboard();
+   // timeMenu.controllKeyboard();
     NMenu.update();
     mainMenu.update();
     if (mainMenu.being==true)
     {
+        //checkMouseMove(1500);
+        mainMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50),keyUpDuration('Enter',50));
         mainMenu.selectOn(function(select) {
             console.log(select);
             if (select == 'Играть') 
@@ -852,7 +854,7 @@ function gameLoop()
     }
     if (timeMenu.being==true)
     {
-        timeMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50));
+        timeMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50),keyUpDuration('Enter',50));
         timeMenu.selectOn(function(select) {
             console.log(select);
          
@@ -895,7 +897,7 @@ function gameLoop()
     }
     if (NMenu.being==true)
     {
-        NMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50));
+        NMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50),keyUpDuration('Enter',50));
         NMenu.selectOn(function (select) {
             console.log(select);
             if (select!=null)

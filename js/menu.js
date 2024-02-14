@@ -17,12 +17,14 @@
     this.header = '';
     this.headerFontSize = 30;
     this.numSelectHower = null;
+    this.mouseHower = false;
     this.selectHower = null;
     this.loadMap = false;
     this.loadMapTrue = true;
     this.blocking = false;
     this.selectNow = false;
     this.controllKey = false;
+    this.keysControllFuncOn = false;
     this.setOption=function(option)
     {
         for (var attr1 in this)
@@ -109,13 +111,15 @@
             let mY = mouseY;//-mouseOffsetY;
             let x = this.xMenu;
             let y = this.yMenu;
-            if ( this.controllKey ==false)
-            {    
-                this.numSelectHower = null;
-                this.selectHower = null;
-            }
-            if (this.blocking==false)
+            //if ( this.controllKey ==false)
+            //{    
+            //    this.numSelectHower = null;
+            //    this.selectHower = null;
+            //}
+            if (this.blocking==false )
             {
+                //let flag = false;
+                if ( (checkMouseMove(100)==true && this.keysControllFuncOn==true ) || this.keysControllFuncOn == false)
                 for (let i = 0;i<this.listSelect.length;i++)
                 {
                     if ( mX>x && mX<x+this.widthOneItem &&
@@ -125,12 +129,15 @@
                     {
                         this.numSelectHower = i;
                         this.selectHower = this.listSelect[i];
-
+                        this.mouseHower = true;
+                        //flag = true;
                     }
 
                 }
+                //if (flag == false && this.keysControllFuncOn == true &&
+                //        checkMouseMove(100)==true) this.mouseHower = false;
             }
-            if (mouseLeftClick())
+            if (mouseLeftClick() && this.mouseHower==true)
             {
                 this.selectNow = true;
        
@@ -140,6 +147,7 @@
     }
     this.controllKeyboard=function(up,down,enter)
     {
+        this.keysControllFuncOn = true;
         let value = null;
         if (this.numSelectHower==null)
         {        
@@ -161,19 +169,25 @@
             if (up==true)
             {
                 //value = this.numSelectHower--;
-                value = this.numSelectHower = --this.numSelectHower >= 0 ?
-                    this.numSelectHower :
-                    this.listSelect.length-1;
+                this.numSelectHower--;
+                value = this.numSelectHower = this.numSelectHower >= 0 ?
+                                                this.numSelectHower :
+                                                this.listSelect.length-1;
                 this.selectHower = this.listSelect[value];
                 this.controllKey = true;
             }
             if (down==true)
             {
-                value = this.numSelectHower=++this.numSelectHower<this.listSelect.length?
-                                    this.numSelectHower:
-                                    0;
+                this.numSelectHower++;
+                value = this.numSelectHower=this.numSelectHower<this.listSelect.length?
+                                                this.numSelectHower:
+                                                0;
                 this.selectHower = this.listSelect[value];
                 this.controllKey = true;
+            }
+            if (enter==true)
+            {
+                this.selectNow = true;
             }
         }
     }
