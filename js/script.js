@@ -37,6 +37,7 @@ var scoreTotal = 0;
 var multScore = 1;
 var countStar = 3;
 var timeMenu = null;
+var controllKeyWInResult = false;
 var dataImg={
     xSp:0,
     ySp:0,
@@ -104,6 +105,8 @@ var buttonRestart = {
     str:'Рестарт',
     fontSize:25,
     colorText:'white',
+    hower: false,
+    colorHower: 'yellow',
     color:'red',
 
 }
@@ -119,6 +122,8 @@ var buttonMainMenu = {
     str:'Главное меню',
     fontSize:25,
     colorText:'white',
+    hower: false,
+    colorHower: 'yellow',
     color:'red',
 
 }
@@ -389,11 +394,17 @@ function drawTextCenterScreen(str,y,fontSize,color)
     let x = screenWidth/2 - widthText / 2;
     context.fillText(str, x, y);
 }
-function drawButton(obj)
+function drawButton(obj,hower=false)
 {
     context.fillStyle = obj.color;
     context.fillRect(obj.x, obj.y, obj.width, obj.height);
+    if (hower==true)
+    {
+        context.strokeStyle = obj.colorHower;
+        context.strokeRect(obj.x, obj.y, obj.width, obj.height);
+    }
     context.fillStyle = obj.colorText;
+    
     context.font = obj.fontSize+'px Arial';
     let widthText=context.measureText(obj.str).width;
     let x = obj.width/2 - widthText / 2;
@@ -505,8 +516,8 @@ function drawScreenResult()
         xText = width/2 - widthText / 2;
         context.fillText(str, x+xText, y+startY+stepY*2);
     }
-    drawButton(buttonRestart);
-    drawButton(buttonMainMenu);
+    drawButton(buttonRestart,buttonRestart.hower);
+    drawButton(buttonMainMenu,buttonMainMenu.hower);
 }
 //var buttonNo = {
 //    x:100,
@@ -710,19 +721,47 @@ function gameLoop()
     if (endGame==true)
     {
         let mouseClick = mouseLeftClick();
-        if ((checkInObj(buttonRestart,mouseX,mouseY)&& mouseClick==true))
+        if (checkInObj(buttonRestart,mouseX,mouseY) || buttonRestart.hower == true)
         {
-            resetDataGame();
-            loadRecordScore(timeGameRAM);
-            startGame = true;
-            timeGame = timeGameRAM;
+            buttonRestart.hower = true;
+            buttonMainMenu.hower = false;
+            if ( mouseClick==true || keyUpDuration('Enter',50))
+            {    
+                resetDataGame();
+                loadRecordScore(timeGameRAM);
+                startGame = true;
+                timeGame = timeGameRAM;
+            }
            
         }
-        if ((checkInObj(buttonMainMenu,mouseX,mouseY)&& mouseClick==true))
+        else
         {
-            resetDataGame();
-            mainMenu.being = true;
+            if (controllKeyWInResult == false) buttonRestart.hower = false;
         }
+        if (checkInObj(buttonMainMenu,mouseX,mouseY) || buttonMainMenu.hower == true)
+        {
+            buttonMainMenu.hower = true;
+            buttonRestart.hower = false;
+            if ( mouseClick==true || keyUpDuration('Enter',50))
+            { 
+                resetDataGame();
+                mainMenu.being = true;
+            }
+        }
+        else
+        {   
+            if (controllKeyWInResult == false)  buttonMainMenu.hower = false;
+        }
+        if (keyUpDuration('ArrowLeft',50) || keyUpDuration('ArrowRight',50))
+        {
+            controllKeyWInResult = true;
+            buttonMainMenu.hower = !buttonMainMenu.hower;
+            buttonRestart.hower = !buttonMainMenu.hower ;
+        }
+        //if (keyUpDuration('ArrowEnter',50))
+        //{
+        //    if (buttonMainMenu.hower == true)
+        //}
     }
     if (mainMenu.being == false && timeMenu.being == false && 
         gameMenu.being == false && NMenu.being == false &&
@@ -755,7 +794,7 @@ function gameLoop()
 
         }
   
-        let mouseClick = mouseLeftClick();
+        let ouseClick = mouseLeftClick();
         let len = dataArr.length;
         //if (mouseClick==true)
         //{
@@ -846,6 +885,7 @@ function gameLoop()
             if (select == 'Играть') 
             {
                 mainMenu.being = false;
+                mainMenu.resetSelect();
                 timeMenu.being = true;
                 
                 
@@ -883,6 +923,7 @@ function gameLoop()
             if (select == '1 минута' || select == '3 минуты' || select == '5 минут'  )
             {
                 timeMenu.being = false;
+                timeMenu.resetSelect();
                 NMenu.being = true;
                 //loadRecordScore(timeGameRAM);
                 //startGame=true;
@@ -903,6 +944,7 @@ function gameLoop()
             if (select!=null)
             {
                 NMenu.being = false;
+                NMenu.resetSelect();
                 loadRecordScore(timeGameRAM);
                 startGame=true;
                 let N = null;
@@ -919,12 +961,14 @@ function gameLoop()
     }
     if (gameMenu.being==true)
     {
+        gameMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50),keyUpDuration('Enter',50));
         gameMenu.selectOn(function (select) {
             if (select == 'Продолжить') {
                 gameMenu.being = false;
             }
             if (select == 'Главное меню') {
                 gameMenu.being = false;
+                gameMenu.resetSelect();
                 mainMenu.being = true;
                 resetDataGame();
                 //timeGame = 0;
@@ -980,6 +1024,9 @@ function resetDataGame()
     correct = 0;
     wrong = 0;
     score = 0;
+    controllKeyWInResult = false;
+    buttonRestart.hower = false;
+    buttonMainMenu.hower = false;
 }
 function addScore()
 {

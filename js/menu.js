@@ -202,4 +202,10 @@
             callback(this.selectHower);
         }
     }
+    this.resetSelect=function()
+    {
+        this.numSelectHower = null;
+        this.selectHower = null;
+        this.keysControllFuncOn = false;
+    }
 }
