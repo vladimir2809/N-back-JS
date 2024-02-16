@@ -163,7 +163,7 @@ function clearPressKey()
 function checkMouseMove(time)
 {
     let timeNow=new Date().getTime();
-    console.log(timeLastVMouseMove);
+   // console.log(timeLastVMouseMove);
     if (timeLastVMouseMove!=null && time>timeNow-timeLastVMouseMove)
     {
         return true;

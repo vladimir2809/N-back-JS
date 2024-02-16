@@ -68,6 +68,15 @@
         this.being = false;
         clearInterval(this.timerId);
     }
+    this.menuOn=function()
+    {
+        this.being = true;
+    }
+    this.menuOff=function()
+    {
+        this.being = false;
+        this.resetSelect();
+    }
     this.draw=function ()
     {
         if (this.being==true)

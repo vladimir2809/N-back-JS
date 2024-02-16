@@ -37,22 +37,23 @@ var scoreTotal = 0;
 var multScore = 1;
 var countStar = 3;
 var timeMenu = null;
-var controllKeyWInResult = false;
+var controllKeyWinResult = false;
+var flagLoadAutoSave = false;
 var dataImg={
     xSp:0,
     ySp:0,
     spWidth:0,
     spHeight:0,
 }
-var yYesNo = 470;
+var yYesNo = 400;
 var deltaXYesNo = 50;
 var buttonNo = {
     x:800/2-100-deltaXYesNo,//-20,//*2,
     y:yYesNo,
     width: 100,
-    height: 50,
+    height: 150,
     str:'<= Нет',
-    fontSize:25,
+    fontSize:35,
     colorText:'red',
     color:'black',
 } 
@@ -60,9 +61,9 @@ var buttonYes = {
     x:800/2+deltaXYesNo,//+20,//+100,
     y:yYesNo,
     width: 100,
-    height: 50,
+    height: 150,
     str:'ДА =>',
-    fontSize:25,
+    fontSize:35,
     colorText:'green',
     color:'black',
 } 
@@ -289,8 +290,10 @@ function create()
     if (checkAutoSave()==true)
     {
         loadAutoSave();
+        flagLoadAutoSave = true;
         startSprite = true;
-        startGame = true
+        startGame = true;
+        updateSize();
     }
     else
     {
@@ -548,7 +551,8 @@ function checkAutoSave()
 }
 function saveAutoSave()
 {
-    let data = { dataArr: dataArr, numSprite:numSprite, timeGame: timeGame, numBackStep: numBackStep };
+    let data = { dataArr: dataArr, numSprite:numSprite, timeGame: timeGame,
+                        timeGameRAM: timeGameRAM, numBackStep: numBackStep };
     localStorage.setItem('NBackAutoSave', JSON.stringify(data));
     console.log(data);
 }
@@ -565,6 +569,10 @@ function loadAutoSave()
         if (typeof(data.numSprite)=='number')
         {
             numSprite=data.numSprite;
+        }
+        if (typeof(data.timeGameRAM)=='number')
+        {
+            timeGameRAM=data.timeGameRAM;
         }
         if (typeof(data.timeGame)=='number')
         {
@@ -698,7 +706,7 @@ function gameLoop()
     if (startGame == true && timeGame == 0) 
     {
         endGame = true;
-       
+        console.log ('OPEN')
         if (wrong<=(wrong+correct)*0.05)
         {
             countStar = 3;
@@ -723,26 +731,35 @@ function gameLoop()
         let mouseClick = mouseLeftClick();
         if (checkInObj(buttonRestart,mouseX,mouseY) || buttonRestart.hower == true)
         {
-            buttonRestart.hower = true;
-            buttonMainMenu.hower = false;
-            if ( mouseClick==true || keyUpDuration('Enter',50))
+            if (checkMouseMove(100))
+            {
+                buttonRestart.hower = true;
+                buttonMainMenu.hower = false;
+            }
+            if ( (mouseClick==true && checkInObj(buttonRestart,mouseX,mouseY) )||
+                keyUpDuration('Enter',50))
             {    
                 resetDataGame();
                 loadRecordScore(timeGameRAM);
                 startGame = true;
                 timeGame = timeGameRAM;
+
             }
            
         }
         else
         {
-            if (controllKeyWInResult == false) buttonRestart.hower = false;
+            if (controllKeyWinResult == false) buttonRestart.hower = false;
         }
         if (checkInObj(buttonMainMenu,mouseX,mouseY) || buttonMainMenu.hower == true)
         {
-            buttonMainMenu.hower = true;
-            buttonRestart.hower = false;
-            if ( mouseClick==true || keyUpDuration('Enter',50))
+            if (checkMouseMove(100))
+            {
+                buttonMainMenu.hower = true;
+                buttonRestart.hower = false;
+            }
+            if ( ( mouseClick==true && checkInObj(buttonMainMenu,mouseX,mouseY)) ||
+                 keyUpDuration('Enter',50))
             { 
                 resetDataGame();
                 mainMenu.being = true;
@@ -750,11 +767,11 @@ function gameLoop()
         }
         else
         {   
-            if (controllKeyWInResult == false)  buttonMainMenu.hower = false;
+            if (controllKeyWinResult == false)  buttonMainMenu.hower = false;
         }
-        if (keyUpDuration('ArrowLeft',50) || keyUpDuration('ArrowRight',50))
+        if ( (keyUpDuration('ArrowLeft',50) || keyUpDuration('ArrowRight',50)))
         {
-            controllKeyWInResult = true;
+            controllKeyWinResult = true;
             buttonMainMenu.hower = !buttonMainMenu.hower;
             buttonRestart.hower = !buttonMainMenu.hower ;
         }
@@ -790,11 +807,12 @@ function gameLoop()
         {
             numSprite = randomInteger(0, 8);
             startSprite = true;
-            saveAutoSave();
+            //if (flagLoadAutoSave == false) 
+            {saveAutoSave(); console.log('sosiska')}
 
         }
   
-        let ouseClick = mouseLeftClick();
+        let mouseClick = mouseLeftClick();
         let len = dataArr.length;
         //if (mouseClick==true)
         //{
@@ -884,10 +902,11 @@ function gameLoop()
             console.log(select);
             if (select == 'Играть') 
             {
-                mainMenu.being = false;
-                mainMenu.resetSelect();
-                timeMenu.being = true;
-                
+            //    mainMenu.being = false;
+            //    mainMenu.resetSelect();
+            //    timeMenu.being = true;
+                mainMenu.menuOff();
+                timeMenu.menuOn();
                 
             }
         });
@@ -922,9 +941,13 @@ function gameLoop()
             }
             if (select == '1 минута' || select == '3 минуты' || select == '5 минут'  )
             {
-                timeMenu.being = false;
-                timeMenu.resetSelect();
-                NMenu.being = true;
+                //timeMenu.being = false;
+                //timeMenu.resetSelect();
+                //NMenu.being = true;
+
+                timeMenu.menuOff();
+                NMenu.menuOn();
+
                 //loadRecordScore(timeGameRAM);
                 //startGame=true;
                 //if (sideClick==true)
@@ -943,8 +966,9 @@ function gameLoop()
             console.log(select);
             if (select!=null)
             {
-                NMenu.being = false;
-                NMenu.resetSelect();
+                //NMenu.being = false;
+                //NMenu.resetSelect();
+                NMenu.menuOff();
                 loadRecordScore(timeGameRAM);
                 startGame=true;
                 let N = null;
@@ -964,12 +988,16 @@ function gameLoop()
         gameMenu.controllKeyboard(keyUpDuration('ArrowUp',50),keyUpDuration('ArrowDown',50),keyUpDuration('Enter',50));
         gameMenu.selectOn(function (select) {
             if (select == 'Продолжить') {
-                gameMenu.being = false;
+                gameMenu.menuOff();
             }
             if (select == 'Главное меню') {
-                gameMenu.being = false;
-                gameMenu.resetSelect();
-                mainMenu.being = true;
+                //gameMenu.being = false;
+                //gameMenu.resetSelect();
+
+                //mainMenu.being = true;
+
+                gameMenu.menuOff();
+                mainMenu.menuOn();
                 resetDataGame();
                 //timeGame = 0;
                 //dataArr = [];
@@ -1024,7 +1052,7 @@ function resetDataGame()
     correct = 0;
     wrong = 0;
     score = 0;
-    controllKeyWInResult = false;
+    controllKeyWinResult = false;
     buttonRestart.hower = false;
     buttonMainMenu.hower = false;
 }
