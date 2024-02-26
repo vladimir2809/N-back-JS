@@ -1,4 +1,11 @@
-﻿screenWidth=800//option[numOption].widthScreenBlock*mapSize;// ширина экрана
+﻿const isMobile = /Mobile|webOS|BlackBerry|IEMobile|MeeGo|mini|Fennec|Windows Phone|Android|iP(ad|od|hone)/i.test(navigator.userAgent);
+let detect = new MobileDetect(/*window.*/navigator.userAgent)
+//alert("Mobile: " + detect.mobile()       // телефон или планшет
+//       + " Phone: " + detect.phone()         // телефон
+//        +" Tablet: " + detect.tablet()       // планшет
+//        +" OS: " + detect.os()               // операционная система 
+//        +" userAgent: " + detect.userAgent()); // userAgent
+screenWidth=800//option[numOption].widthScreenBlock*mapSize;// ширина экрана
 screenHeight=600//option[numOption].heightScreenBlock*mapSize;// высота экрана
 var windowWidth=document.documentElement.clientWidth;
 var windowHeight=document.documentElement.clientHeight;
@@ -46,13 +53,14 @@ var dataImg={
     spHeight:0,
 }
 var yYesNo = 400;
-var deltaXYesNo = 50;
+var deltaXYesNo = 20;
 var buttonNo = {
-    x:800/2-100-deltaXYesNo,//-20,//*2,
+    x:800/2-130-deltaXYesNo,//-20,//*2,
     y:yYesNo,
-    width: 100,
+    width: 130,
     height: 150,
     str:'<= Нет',
+    
     fontSize:35,
     colorText:'red',
     color:'black',
@@ -60,7 +68,7 @@ var buttonNo = {
 var buttonYes = {
     x:800/2+deltaXYesNo,//+20,//+100,
     y:yYesNo,
-    width: 100,
+    width: 130,
     height: 150,
     str:'ДА =>',
     fontSize:35,
@@ -140,16 +148,48 @@ window.onresize = function()
     updateSize()
     console.log("resize");
 }
+window.addEventListener("orientationchange", function () {
+     //screen.orientation.lock( 'landscape' )
+    setTimeout(updateSize, 1000);
+    setTimeout(updateSize, 2500);
+   // window.orientation = 90;
+    //alert("The orientation of the screen is: " + window.orientation);
+});
+function drawWidthHeight()
+{
+    context.font = 25 + 'px Arial';
+    context.fillStyle = 'red';
+    //let str = 'Не верно ' + wrong;
+    ///widthText=context.measureText(str).width;
+    let startY = 120;
+    let stepY = 30;
+    context.fillText("winWidth: "+window.innerWidth/*windowWidth*/, 56/*120-widthText/2*/, startY);
+    context.fillText("winHeight: "+window.innerHeight/*windowHeight*/, 56/*120-widthText/2*/, startY+stepY);
+    context.fillText("canvasWidth: "+canvasWidth, 56/*120-widthText/2*/, startY+stepY*2);
+    context.fillText("canvasHeight: "+canvasHeight, 56/*120-widthText/2*/, startY+stepY*3);
+
+    const rect = canvas.getBoundingClientRect()
+
+    context.fillText("canvasX: "+rect.x, 356/*120-widthText/2*/, startY);
+    context.fillText("canvasY: "+rect.y, 356/*120-widthText/2*/, startY+stepY);
+    
+    context.fillText("screenWidth: "+screenWidth, 356/*120-widthText/2*/, startY+stepY*2);
+    context.fillText("screenHeight: "+screenHeight, 356/*120-widthText/2*/, startY+stepY*3);
+    //context.fillText("canvasWidth: "+canvasWidth, 56/*120-widthText/2*/, startY+stepY*2);
+
+}
 function updateSize()
 {
-    windowWidth=document.documentElement.clientWidth;
-    windowHeight=document.documentElement.clientHeight;
+    windowWidth=window.innerWidth//document.documentElement.clientWidth;
+    windowHeight=window.innerHeight//document.documentElement.clientHeight;
+    divYes.style.display = 'none';
+    divNo.style.display = 'none';
     let mult = 1;
-    if (windowWidth>=windowHeight)
+    if (windowWidth>windowHeight)
     {
         canvasWidth = /*canvas.width = */windowHeight*screenWidth/screenHeight;
         canvasHeight = /*canvas.height = */windowHeight;
-        if (canvasWidth>windowWidth)
+        if (canvasWidth>=windowWidth)
         {
             mult = windowWidth/canvasWidth;
            // canvas.width =
@@ -164,12 +204,28 @@ function updateSize()
         canvasWidthMore = false;
         canvasWidth = /*canvas.width*/  windowWidth;
         canvasHeight= /*canvas.height*/  windowWidth*screenHeight/screenWidth;
+        //if (canvasHeight>=windowHeight)
+        //{
+        //    mult = windowHeight/canvasHeight ;
+        //   // canvas.width =
+        //        canvasWidth *= mult;
+        //    //canvas.height =
+        //        canvasHeight *= mult;
+        //}
     }
     
     canvas.setAttribute('width',canvasWidth);
     canvas.setAttribute('height',canvasHeight);
-    canvas.style.setProperty('left', (window.innerWidth - canvas.width)/2 + 'px'); 
-    canvas.style.setProperty('top', (window.innerHeight - canvas.height) / 2 + 'px'); 
+    if (canvasWidthMore==false)
+    {
+        canvas.style.setProperty('left', '0px'); 
+    }
+    else
+    {
+        canvas.style.setProperty('left', (window.innerWidth - canvasWidth/*canvas.width*/)/2 + 'px'); 
+    }
+
+    canvas.style.setProperty('top', (window.innerHeight - canvasHeight/*canvas.height*/) / 2 + 'px'); 
     if (canvasWidthMore==true)
     {
         context.scale(windowHeight / screenHeight * mult, windowHeight / screenHeight * mult);   
@@ -257,15 +313,22 @@ function preload()
 }
 function create()
 {
+    
+    //window.screen.lockOrientation('portrait');
+    //window.screen.lockOrientation("landscape");
+/*    screen.orientation.lock( 'landscape' )*/ 
+    //alert(isMobile+' 25'+' '+navigator.userAgent);
     divYes = document.getElementById('divYes');
     divNo = document.getElementById("divNo");
     canvas = document.getElementById("canvas");  
     context = canvas.getContext("2d");
     updateSize();
+    
     time = new Date().getTime();
     srand(time);
     initKeyboardAndMouse(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','Enter','KeyS']);
     initImgFromSpriteSet();
+    let multSizeMenu = 1.7;
     timeMenu = new Menu();
     timeMenu.setOption({
         listSelect:['1 минута','3 минуты','5 минут'],
@@ -275,6 +338,13 @@ function create()
         height: screenHeight,
     });
     timeMenu.being = false;
+    timeMenu.widthOneItem *= multSizeMenu;
+    timeMenu.heightOneItem *= multSizeMenu;
+    timeMenu.sizeFontItem *= multSizeMenu;
+    timeMenu.dist *= multSizeMenu;
+    timeMenu.headerFontSize *= multSizeMenu;
+    timeMenu.updateProp();
+   
     mainMenu = new Menu();
     mainMenu.setOption({
         listSelect:['Играть',/*"Продолжить"*/],
@@ -287,6 +357,13 @@ function create()
         heightOneItem : 60,
         sizeFontItem :30,
     });
+    mainMenu.widthOneItem *= multSizeMenu;
+    mainMenu.heightOneItem *= multSizeMenu;  
+    mainMenu.sizeFontItem *= multSizeMenu;
+    mainMenu.dist *= multSizeMenu;
+    mainMenu.headerFontSize *= multSizeMenu;
+    mainMenu.updateProp();
+
     if (checkAutoSave()==true)
     {
         loadAutoSave();
@@ -309,9 +386,17 @@ function create()
         width: 300,
         height: 300,
     });
+    gameMenu.heightOneItem *= multSizeMenu*0.7;  
+    gameMenu.widthOneItem *= multSizeMenu*0.7;
+    gameMenu.sizeFontItem *= multSizeMenu*0.7;
+    gameMenu.dist *= multSizeMenu*0.7;
+    gameMenu.headerFontSize *= multSizeMenu;
+    gameMenu.updateProp();
     gameMenu.y = 100;
     gameMenu.yMenu = 200;
     gameMenu.being = false;
+
+    
 
     NMenu = new Menu();
 
@@ -322,6 +407,13 @@ function create()
         width : screenWidth,
         height: screenHeight,
     });
+   NMenu.widthOneItem *= multSizeMenu*0.7;
+   NMenu.heightOneItem *= multSizeMenu*0.7; 
+   NMenu.sizeFontItem *= multSizeMenu*0.7;
+   NMenu.dist *= multSizeMenu*0.7;
+   NMenu.headerFontSize *= multSizeMenu*0.7;
+   NMenu.updateProp();
+  
 }
 function drawAll()
 {
@@ -387,6 +479,9 @@ function drawAll()
     if (startGame == true) drawMenuLabel(buttonGameMenu.x ,buttonGameMenu.y,
                                          buttonGameMenu.width ,buttonGameMenu.height );
     if (endGame == true)  drawScreenResult();
+
+
+    //drawWidthHeight();
     //
 }
 function drawTextCenterScreen(str,y,fontSize,color)
@@ -411,7 +506,8 @@ function drawButton(obj,hower=false)
     context.font = obj.fontSize+'px Arial';
     let widthText=context.measureText(obj.str).width;
     let x = obj.width/2 - widthText / 2;
-    context.fillText(obj.str, obj.x+x, obj.y+obj.fontSize*1.3);
+    context.fillText(obj.str, obj.x+x, obj.y+obj.height/2+obj.fontSize/3/*+obj.fontSize*1.3*/);
+   // this.heightOneItem/2+sizeFont/3
 }
 function drawCross(x,y)
 {
@@ -659,8 +755,8 @@ function loadRecordScore(timeGame)
             }
         }
     }
-
 }
+
 function gameLoop()
 {
     timeNow = new Date().getTime();
@@ -671,6 +767,7 @@ function gameLoop()
         if (timeGame - (timeNow - timeOld) > 0) timeGame -= (timeNow - timeOld); else timeGame = 0;
     }
     
+   
     //wrong++;
     //if (time>100)
     //{
@@ -687,7 +784,9 @@ function gameLoop()
         }
         if (keyUpDuration('KeyS',100))
         {
-            loadAutoSave()
+           // loadAutoSave()
+            //window.resizeTo(300,300);
+            //window.outerWidth = 300;
         }
     }
     if (startGame==false)
