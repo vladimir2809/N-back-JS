@@ -39,7 +39,7 @@ var sideClick = false;
 var timeGame = 1000 * 60 * 5;
 var timeGameRAM = 0;
 var score = 0;
-var scoreRecord = 10;
+var scoreRecord = 0;
 var scoreTotal = 0;
 var multScore = 1;
 var countStar = 3;
@@ -99,8 +99,8 @@ var buttonMinus = {
 var buttonGameMenu = {
     x:1,
     y:1,
-    width:40,
-    height:40,
+    width:70,
+    height:70,
 }
 var buttonRestart = {
 
@@ -109,7 +109,7 @@ var buttonRestart = {
     x:50,
     y:450,
     width:200,
-    height:50,
+    height:60,
 
     str:'Рестарт',
     fontSize:25,
@@ -126,7 +126,7 @@ var buttonMainMenu = {
     x:550,
     y:450,
     width:200,
-    height:50,
+    height:60,
 
     str:'Главное меню',
     fontSize:25,
@@ -317,7 +317,7 @@ function create()
     //window.screen.lockOrientation('portrait');
     //window.screen.lockOrientation("landscape");
 /*    screen.orientation.lock( 'landscape' )*/ 
-    //alert(isMobile+' 25'+' '+navigator.userAgent);
+    //alert(isMobile+' 28');
     divYes = document.getElementById('divYes');
     divNo = document.getElementById("divNo");
     canvas = document.getElementById("canvas");  
@@ -331,7 +331,8 @@ function create()
     let multSizeMenu = 1.7;
     timeMenu = new Menu();
     timeMenu.setOption({
-        listSelect:['1 минута','3 минуты','5 минут'],
+        //listSelect:['1 минута','3 минуты','5 минут'],
+        listSelect:['15 секунд','30 секунд','1 минута'],
         listFlagOn:[true,true,true],
         header : 'Выберите время',
         width : screenWidth,
@@ -363,6 +364,7 @@ function create()
     mainMenu.dist *= multSizeMenu;
     mainMenu.headerFontSize *= multSizeMenu;
     mainMenu.updateProp();
+    
 
     if (checkAutoSave()==true)
     {
@@ -374,7 +376,8 @@ function create()
     }
     else
     {
-        mainMenu.being = true;
+     //   mainMenu.being = true;
+        mainMenu.menuOn();
     }
  
     
@@ -420,7 +423,7 @@ function drawAll()
     context.fillStyle = "rgb(210,210,21)"
     context.fillRect(0, 0, screenWidth, screenHeight);
     
-    drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+" "+strPosition(numBackStep)+' назад?',50,25,'green')
+    drawTextCenterScreen('Появлялась ли эта картинка '+numBackStep+" "+strPosition(numBackStep)+' назад?',50,28,'green')
     //scale = 0.70;
    // for (let i = 0; i < 16; i++)
     if (drawImage==true)
@@ -438,28 +441,32 @@ function drawAll()
         //context.fillStyle = 'black';
        // context.fillRect(250,100,dataImgArr[numSprite].spWidth *scale, dataImgArr[numSprite].spHeight*scale)
     }
-    context.font = 25 + 'px Arial';
+    const addY = 3;
+    context.font = 29 + 'px Arial';
     context.fillStyle = 'red';
+
     let str = 'Не верно ' + wrong;
     widthText=context.measureText(str).width;
-    context.fillText(str, 56/*120-widthText/2*/, 120);
+    context.fillText(str, /*56*/132-widthText/2, 120+addY);
    // context.fillText('mouseX '+Math.floor(mouseX)+' mouseY '+Math.floor(mouseY),10,30);
+
     context.fillStyle = 'green';
-    
+
     str = 'Верно ' + correct;
     widthText=context.measureText(str).width;
-    context.fillText(str, 665-widthText/2, 120);
+    context.fillText(str, 665-widthText/2, 120+addY);
 
     //context.fillText('Верно '+correct, 620, 120);
 
     context.fillStyle = 'blue';
+
     let second = Math.floor((timeGame / 1000) % (60));
     second = second >= 10 ? second : '0' + second;
-    context.fillText('Время '+Math.floor(timeGame/(1000*60))+':'+second, 56, 170);
+    context.fillText('Время '+Math.floor(timeGame/(1000*60))+':'+second, 56, 170+addY);
 
     str = 'Очки: '+score;
     widthText=context.measureText(str).width;
-    context.fillText(str, 665-widthText/2, 170);
+    context.fillText(str, 665-widthText/2, 170+addY);
 
 
     drawButton(buttonNo);
@@ -648,7 +655,8 @@ function checkAutoSave()
 function saveAutoSave()
 {
     let data = { dataArr: dataArr, numSprite:numSprite, timeGame: timeGame,
-                        timeGameRAM: timeGameRAM, numBackStep: numBackStep };
+                        timeGameRAM: timeGameRAM, numBackStep: numBackStep,
+                        correct:correct, wrong:wrong, score:score };
     localStorage.setItem('NBackAutoSave', JSON.stringify(data));
     console.log(data);
 }
@@ -677,6 +685,19 @@ function loadAutoSave()
         if (typeof(data.numBackStep)=='number')
         {
             numBackStep=data.numBackStep;
+        }
+
+        if (typeof(data.correct)=='number')
+        {
+            correct=data.correct;
+        }
+        if (typeof(data.wrong)=='number')
+        {
+            wrong=data.wrong;
+        }
+        if (typeof(data.score)=='number')
+        {
+            score=data.score;
         }
     }
 }
@@ -775,6 +796,15 @@ function gameLoop()
     //    numSprite %= 16;
     //    time = 0;
     //}
+    //score += 70;
+    //if (score > 10000) score = 0;
+
+    //wrong += wrong > 100 ? 10 : 1;
+    //if (wrong> 1000) wrong = 0;
+
+    //correct +=  correct > 100 ? 10 : 1;
+    //if ( correct> 1000)  correct = 0;
+
     timeOld = new Date().getTime();
     if (mainMenu.being == false && timeMenu.being == false  && NMenu.being == false)
     {
@@ -1005,7 +1035,9 @@ function gameLoop()
             //    mainMenu.resetSelect();
             //    timeMenu.being = true;
                 mainMenu.menuOff();
-                timeMenu.menuOn();
+              // setTimeout(function(){
+                    timeMenu.menuOn();
+                //},300);
                 
             }
         });
@@ -1017,28 +1049,29 @@ function gameLoop()
             console.log(select);
          
            
-            if (select == '1 минута') 
+            if (select == '15 секунд') 
             {
               ;
-                timeGameRAM = timeGame = 1000 * 10//60;
+                timeGameRAM = timeGame = 1000 * 15//60;
             
             
             }
-            if (select == '3 минуты') 
+            if (select == '30 секунд') 
             {
               
-                timeGameRAM = timeGame = 1000 * 60 * 3;
+                timeGameRAM = timeGame = 1000 * 30;
                
             
             }
-            if (select == '5 минут') 
+            if (select == '1 минута') 
             {
                 
-                timeGameRAM = timeGame = 1000 * 60 * 5;
+                timeGameRAM = timeGame = 1000 * 60;
                 
             
             }
-            if (select == '1 минута' || select == '3 минуты' || select == '5 минут'  )
+            //listSelect:['15 секунд','30 секунд','1 минута'],
+            if (select == '15 секунд' || select == '30 секунд' || select == '1 минута'  )
             {
                 //timeMenu.being = false;
                 //timeMenu.resetSelect();

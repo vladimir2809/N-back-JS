@@ -25,6 +25,7 @@
     this.selectNow = false;
     this.controllKey = false;
     this.keysControllFuncOn = false;
+    this.timeOpen = null;
     this.setOption=function(option)
     {
         for (var attr1 in this)
@@ -71,11 +72,14 @@
     this.menuOn=function()
     {
         this.being = true;
+        this.resetSelect();
+        this.timeOpen=new Date().getTime();
     }
     this.menuOff=function()
     {
         this.being = false;
         this.resetSelect();
+        this.timeOpen=null;
     }
     this.draw=function ()
     {
@@ -120,6 +124,7 @@
             let mY = mouseY;//-mouseOffsetY;
             let x = this.xMenu;
             let y = this.yMenu;
+            let timeNow=new Date().getTime();
             if ( this.controllKey ==false &&  this.mouseHower == false)
             {    
                 this.numSelectHower = null;
@@ -135,7 +140,8 @@
                         mY<y+i*(this.heightOneItem+this.dist)+ this.heightOneItem &&
                         this.listFlagOn[i]==true)
                     {
-                        if ( (checkMouseMove(100)==true && this.keysControllFuncOn==true ) || 
+                        if (    (timeNow>this.timeOpen+200 && checkMouseMove(100)==true && 
+                                this.keysControllFuncOn==true ) || 
                             this.keysControllFuncOn == false)
                         {
                             this.numSelectHower = i;
