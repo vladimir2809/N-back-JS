@@ -1,5 +1,5 @@
-﻿const isMobile = /Mobile|webOS|BlackBerry|IEMobile|MeeGo|mini|Fennec|Windows Phone|Android|iP(ad|od|hone)/i.test(navigator.userAgent);
-let detect = new MobileDetect(/*window.*/navigator.userAgent)
+﻿//const isMobile = /Mobile|webOS|BlackBerry|IEMobile|MeeGo|mini|Fennec|Windows Phone|Android|iP(ad|od|hone)/i.test(navigator.userAgent);
+//let detect = new MobileDetect(/*window.*/navigator.userAgent)
 //alert("Mobile: " + detect.mobile()       // телефон или планшет
 //       + " Phone: " + detect.phone()         // телефон
 //        +" Tablet: " + detect.tablet()       // планшет
@@ -46,6 +46,79 @@ var countStar = 3;
 var timeMenu = null;
 var controllKeyWinResult = false;
 var flagLoadAutoSave = false;
+var initYsdk = false;
+var ADVOpen = false;
+var ADV = {
+    flagInGame: false,
+    timerOn:false,
+    time: 0,
+    timeOld:0,
+    maxTime: 180000,
+};
+YaGames
+    .init()
+    .then(ysdk => {
+        console.log('Yandex SDK initialized');
+        window.ysdk = ysdk;
+        initYsdk = true;
+    });
+function adversting()
+{
+    ADVOpen = true;
+    var interval=setInterval(function () {
+        if (initYsdk==true)
+        {
+            ysdk.adv.showFullscreenAdv({
+                callbacks: {
+                    onClose: function () {
+                        ADVOpen = false
+                        console.log('adversting close');
+                        if (ADV.flagInGame == false) ADV.flagInGame = true;
+
+                    },
+                    onOpen: function () {
+                        ADVOpen = true;
+                        console.log('adversting open');
+                    },
+                    onError: function () {
+                        ADVOpen = false
+                        console.log('adversting Error');
+                        if (ADV.flagInGame == false)ADV.flagInGame = true;
+
+                    },
+                    onOffline: function () {
+                        ADVOpen = false;
+                        if (ADV.flagInGame == false)ADV.flagInGame = true;
+                    }
+                },
+            });
+      
+            clearInterval(interval);
+        }
+    },100);
+}
+function callADV() 
+{
+    //if (ADV.timerOn==false)
+    //{
+    //    ADV.timerOn = true;
+    //    ADV.time = ADV.timeOld = new Date().getTime();
+    //}
+    if (ADV.timerOn==true)
+    {
+        ADV.time = new Date().getTime();
+        console.log(ADV.time - ADV.timeOld);
+    }
+    if (ADV.time > ADV.timeOld + ADV.maxTime)
+    {
+       
+        ADV.timeOld = new Date().getTime();
+        saveTimeAdv();
+        adversting();
+    }
+       
+}
+
 var dataImg={
     xSp:0,
     ySp:0,
@@ -58,7 +131,7 @@ var buttonNo = {
     x:800/2-130-deltaXYesNo,//-20,//*2,
     y:yYesNo,
     width: 130,
-    height: 150,
+    height: 130,
     str:'<= Нет',
     
     fontSize:35,
@@ -69,7 +142,7 @@ var buttonYes = {
     x:800/2+deltaXYesNo,//+20,//+100,
     y:yYesNo,
     width: 130,
-    height: 150,
+    height: 130,
     str:'ДА =>',
     fontSize:35,
     colorText:'green',
@@ -107,7 +180,7 @@ var buttonRestart = {
     being:false,
 
     x:50,
-    y:450,
+    y:480,
     width:200,
     height:60,
 
@@ -124,7 +197,7 @@ var buttonMainMenu = {
     being:false,
 
     x:550,
-    y:450,
+    y:480,
     width:200,
     height:60,
 
@@ -328,6 +401,7 @@ function create()
     srand(time);
     initKeyboardAndMouse(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Escape','Enter','KeyS']);
     initImgFromSpriteSet();
+    ADV.timerOn = true;
     let multSizeMenu = 1.7;
     timeMenu = new Menu();
     timeMenu.setOption({
@@ -379,24 +453,27 @@ function create()
      //   mainMenu.being = true;
         mainMenu.menuOn();
     }
- 
+    if (checkSaveTimeAdv()==true)
+    {
+        loadTimeAdv();
+    }
     
     gameMenu = new Menu();
     gameMenu.setOption({
-        listSelect:['Продолжить',"Главное меню"],
-        listFlagOn:[true,true],
+        listSelect:['Продолжить',"Рестарт","Главное меню"],
+        listFlagOn:[true,true,true],
         header:'Пауза',
         width: 300,
-        height: 300,
+        height: 301,
     });
-    gameMenu.heightOneItem *= multSizeMenu*0.7;  
-    gameMenu.widthOneItem *= multSizeMenu*0.7;
-    gameMenu.sizeFontItem *= multSizeMenu*0.7;
-    gameMenu.dist *= multSizeMenu*0.7;
+    gameMenu.heightOneItem *= multSizeMenu*0.75;  
+    gameMenu.widthOneItem *= multSizeMenu*0.75;
+    gameMenu.sizeFontItem *= multSizeMenu*0.75;
+    gameMenu.dist *= multSizeMenu*0.75;
     gameMenu.headerFontSize *= multSizeMenu;
     gameMenu.updateProp();
     gameMenu.y = 100;
-    gameMenu.yMenu = 200;
+    gameMenu.yMenu = 180;
     gameMenu.being = false;
 
     
@@ -573,7 +650,7 @@ function drawScreenResult()
 {
    
     let width = 700;
-    let height = 400; 
+    let height = 480; 
     let x = screenWidth/2-width/2;
     let y = screenHeight/2-height/2;
     let scale = 3;
@@ -602,7 +679,7 @@ function drawScreenResult()
     xText = width/2 - widthText / 2;
     context.fillText(str, x+xText, y+150);
     let startY = 215;
-    let stepY = 55;
+    let stepY = 70;
     context.font = '45px Arial';
     str = 'Очки ' + score + " x " + multScore + ' = ' + scoreTotal;
     widthText=context.measureText(str).width;
@@ -636,6 +713,45 @@ function drawScreenResult()
 //    color:'black',
 //} 
 
+/////////////////////////////////////////////////////////
+//  СОХРАНЕНИЕ ВРЕМЕНИ РЕКЛАМЫ
+////////////////////////////////////////////////////////
+/////////////////////////////////////////////
+function removeTimeAdv()
+{
+     localStorage.removeItem('NBackSaveTimeAdv');
+}
+function checkSaveTimeAdv()
+{
+    if (localStorage.getItem('NBackSaveTimeAdv')!=null && 
+        localStorage.getItem('NBackSaveTimeAdv')!=undefined)
+    {
+        return true;
+    }
+    return false;
+}
+function saveTimeAdv()
+{
+    let data = { time:ADV.time, timeOld:ADV.timeOld };
+    localStorage.setItem('NBackSaveTimeAdv', JSON.stringify(data));
+    console.log(data);
+}
+function loadTimeAdv()
+{
+  //  if (checkAutoSave()==true)
+    {
+        let data=localStorage.getItem('NBackSaveTimeAdv');
+        data=JSON.parse(data)
+        if (typeof(data.time)=='number')
+        {
+            ADV.time=data.time;
+        }
+        if (typeof(data.timeOld)=='number')
+        {
+            ADV.timeOld=data.timeOld;
+        }
+    }
+}
 /////////////////////////////////////////////
 //  АВТОСОХРАНЕНИЕ 
 /////////////////////////////////////////////
@@ -703,7 +819,7 @@ function loadAutoSave()
 }
 
 /////////////////////////////////////////////
-//  СОХРАНЕНИЕ РЕКОРДА ОЧОКОВ
+//  СОХРАНЕНИЕ РЕКОРДА ОЧКОВ
 /////////////////////////////////////////////
 function removeRecordScore()
 {
@@ -806,11 +922,11 @@ function gameLoop()
     //if ( correct> 1000)  correct = 0;
 
     timeOld = new Date().getTime();
-    if (mainMenu.being == false && timeMenu.being == false  && NMenu.being == false)
+    if (mainMenu.being == false && timeMenu.being == false && NMenu.being == false && endGame==false)
     {
         if (keyUpDuration('Escape',100))
         {
-            gameMenu.being = !gameMenu.being;
+            gameMenu.being == true ? gameMenu.menuOff() : gameMenu.menuOn();
         }
         if (keyUpDuration('KeyS',100))
         {
@@ -832,7 +948,7 @@ function gameLoop()
         //console.log('none');
         ;
     }
-    if (startGame == true && timeGame == 0) 
+    if (startGame == true && timeGame == 0 && endGame==false) 
     {
         endGame = true;
         console.log ('OPEN')
@@ -854,6 +970,7 @@ function gameLoop()
         scoreTotal = score * multScore;
         saveRecordScore(timeGameRAM, scoreTotal);
         removeAutoSave();
+        callADV();
     }
     if (endGame==true)
     {
@@ -868,10 +985,11 @@ function gameLoop()
             if ( (mouseClick==true && checkInObj(buttonRestart,mouseX,mouseY) )||
                 keyUpDuration('Enter',50))
             {    
-                resetDataGame();
-                loadRecordScore(timeGameRAM);
-                startGame = true;
-                timeGame = timeGameRAM;
+                restartGame();
+                //resetDataGame();
+                //loadRecordScore(timeGameRAM);
+                //startGame = true;
+                //timeGame = timeGameRAM;
 
             }
            
@@ -1035,6 +1153,8 @@ function gameLoop()
             //    mainMenu.resetSelect();
             //    timeMenu.being = true;
                 mainMenu.menuOff();
+                callADV();
+                //adversting();
               // setTimeout(function(){
                     timeMenu.menuOn();
                 //},300);
@@ -1122,6 +1242,10 @@ function gameLoop()
             if (select == 'Продолжить') {
                 gameMenu.menuOff();
             }
+            if (select == 'Рестарт') {
+                gameMenu.menuOff();
+                restartGame();
+            }
             if (select == 'Главное меню') {
                 //gameMenu.being = false;
                 //gameMenu.resetSelect();
@@ -1174,6 +1298,13 @@ function gameLoop()
     //}
     
 }
+function restartGame()
+{
+    resetDataGame();
+    loadRecordScore(timeGameRAM);
+    startGame = true;
+    timeGame = timeGameRAM;
+}
 function resetDataGame()
 {
     timeGame = 0;
@@ -1224,6 +1355,7 @@ function updateData()
     drawImage = false;
     if (dataArr.length > 10) dataArr.shift();
     saveAutoSave();
+    
 }
 function strPosition(value)
 {

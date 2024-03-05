@@ -140,12 +140,13 @@
                         mY<y+i*(this.heightOneItem+this.dist)+ this.heightOneItem &&
                         this.listFlagOn[i]==true)
                     {
-                        if (    (timeNow>this.timeOpen+200 && checkMouseMove(100)==true && 
+                        if ( (timeNow>this.timeOpen+200 && checkMouseMove(100)==true && 
                                 this.keysControllFuncOn==true ) || 
                             this.keysControllFuncOn == false)
                         {
                             this.numSelectHower = i;
                             this.selectHower = this.listSelect[i];
+                          //  console.log(timeNow-this.timeOpen)
                         }
                         this.mouseHower = true;
                         flag = true;
@@ -221,6 +222,6 @@
     {
         this.numSelectHower = null;
         this.selectHower = null;
-        this.keysControllFuncOn = false;
+        //this.keysControllFuncOn = false;
     }
 }
